@@ -326,7 +326,7 @@ const PAYMENT_METHODS = {
 
 const SUBMISSION_FEE = {
   zambia: { amount: 'K120', currency: 'ZMW', label: 'Zambia' },
-  international: { amount: 'US$10 USD', currency: 'USD', label: 'International' }
+  international: { amount: '$10 USD', currency: 'USD', label: 'International' }
 };
 function getSubmissionFee(country) {
   return (country || '').trim() === 'Zambia' ? SUBMISSION_FEE.zambia : SUBMISSION_FEE.international;
@@ -619,7 +619,7 @@ function computeEngagementFee(formData, assessment) {
   return { fee: clamped, band, geoKey, complexity: complexity.score, factors: complexity.factors };
 }
 
-function formatUSD(n) { return 'US$' + n.toLocaleString('en-US') + ' USD'; }
+function formatUSD(n) { return '$' + n.toLocaleString('en-US') + ' USD'; }
 
 /* ============================================================
    ENTERPRISE DIAGNOSTIC CONTENT
@@ -634,8 +634,8 @@ const DIAGNOSTIC_DELIVERABLES = [
 const DIAGNOSTIC_FAQ = [
   { q: 'Who is the Enterprise Diagnostic for?', a: 'Any business considering a capital raise, whether or not it has passed initial screening. It is particularly valuable for businesses that have not yet proceeded to an engagement, and for those who want to understand exactly what to fix before approaching investors.' },
   { q: 'What do I receive?', a: 'A formal, structured Enterprise Diagnostic Report delivered as a PDF document within five business days. It covers your current stage, your constraints, ranked interventions, and a recommended capital pathway.' },
-  { q: 'How is the Diagnostic priced?', a: 'The standard Diagnostic Report fee is US$50 USD. Based on your assessment outcome, a discounted rate applies at the point of purchase: US$40 USD for investment-ready businesses, or US$30 USD for those still developing. There is no refund mechanic — the discounted rate is the price you pay.' },
-  { q: 'Can I apply the Diagnostic discount toward the Engagement Fee?', a: 'Yes. Where you proceed to engagement, your Diagnostic discount is carried forward as a courtesy credit toward the Engagement Fee at payment.' },
+  { q: 'How is the Diagnostic priced?', a: 'The standard Diagnostic Report fee is $50 USD. Based on your assessment outcome, a discounted rate applies at the point of purchase: $29 USD for investment-ready businesses, or $19 USD for those still developing. There is no refund mechanic — the discounted rate is the price you pay.' },
+  { q: 'Can I apply the Diagnostic discount toward the Engagement Fee?', a: 'Yes. Where you proceed to engagement, your Diagnostic discount is carried forward as a courtesy credit toward the Engagement Fee at payment — $29 USD for investment-ready businesses, or $19 USD for those still developing.' },
   { q: 'What if I have already completed the platform assessment?', a: 'Your assessment data is used to inform the diagnostic. You do not need to repeat information you have already provided.' },
   { q: 'How long does the diagnostic take?', a: 'Most diagnostics are delivered within five business days. Complex businesses or those requiring additional analysis may take longer, and we will tell you at the point of purchase.' },
 ];
@@ -1119,10 +1119,10 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
   const [payData, setPayData] = useState(null);
 
   const quote = useMemo(() => computeEngagementFee(formData, assessment), [formData, assessment]);
-  const creditAvailable = 40;
+  const creditAvailable = 29;
   const credit = applyCredit ? creditAvailable : 0;
   const payableNum = Math.max(quote.fee - credit, 0);
-  const payableStr = 'US$' + payableNum.toLocaleString('en-US') + ' USD';
+  const payableStr = '$' + payableNum.toLocaleString('en-US') + ' USD';
 
   const today = useMemo(() => new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }), []);
   const engRef = 'ENG-' + refCode.replace('MLG-', '');
@@ -1598,7 +1598,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                   {applyCredit && (
                     <div className="flex justify-between gap-6 py-4 border-t border-white/10">
                       <span className="text-[13px] text-[#F5B722]">Diagnostic courtesy credit applied</span>
-                      <span className="text-[15px] text-[#F5B722] font-semibold">− US${credit} USD</span>
+                      <span className="text-[15px] text-[#F5B722] font-semibold">− ${credit} USD</span>
                     </div>
                   )}
                   <div className="flex justify-between gap-6 py-5 border-t-2 border-[#F5B722]/40 mt-1">
@@ -1621,7 +1621,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                   <span>
                     <span className="block text-[13.5px] font-semibold text-[#071224] mb-1">Apply Diagnostic courtesy credit</span>
                     <span className="block text-[12.5px] leading-relaxed text-[#071224]/55">
-                      Where you have purchased an Enterprise Diagnostic, your courtesy credit of US${creditAvailable} USD can be applied toward the Engagement Fee, reducing your payable to US${Math.max(quote.fee - creditAvailable, 0)} USD.
+                      Where you have purchased an Enterprise Diagnostic, your courtesy credit of ${creditAvailable} USD can be applied toward the Engagement Fee, reducing your payable to ${Math.max(quote.fee - creditAvailable, 0)} USD.
                     </span>
                   </span>
                 </button>
@@ -1632,7 +1632,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                     <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#071224" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </span>
                   <span className="flex-1">
-                    <span className="block text-[13.5px] font-semibold text-[#071224] mb-1">Courtesy credit applied — US${credit} USD</span>
+                    <span className="block text-[13.5px] font-semibold text-[#071224] mb-1">Courtesy credit applied — ${credit} USD</span>
                     <span className="block text-[12.5px] leading-relaxed text-[#071224]/55">Credit is verified against your account before commencement.</span>
                   </span>
                   <button onClick={() => setApplyCredit(false)} className="text-[11px] text-[#071224]/45 hover:text-[#071224] shrink-0">Remove</button>
@@ -1721,7 +1721,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                     ['Country', formData.country],
                     ['Engagement tier', assessment.tierLabel],
                     ['Engagement Fee', formatUSD(quote.fee)],
-                    ...(credit > 0 ? [['Courtesy credit applied', '− US$' + credit + ' USD']] : []),
+                    ...(credit > 0 ? [['Courtesy credit applied', '− $' + credit + ' USD']] : []),
                     ['Paid on commencement', payableStr],
                     ['Receipt No', payData.receiptNo],
                     ['Payment reference', payData.transactionRef],
@@ -1795,14 +1795,14 @@ function PurchaseModal({ open, onClose, courtesyAmount, context }) {
   useEffect(() => { if (open) { setStep(0); setF({ name: '', email: '', company: '', country: '', consent: false }); } }, [open]);
   if (!open) return null;
 
-  // Standard fee is US$50 USD.
-  // Discounted rate: US$40 USD (investment-ready) or US$30 USD (developing / not-yet-ready).
+  // Standard fee is $50 USD.
+  // Discounted rate: $29 USD (investment-ready) or $19 USD (developing / not-yet-ready).
   const priceInfo =
-    courtesyAmount === 40
-      ? { price: 'US$40 USD', standard: 'US$50 USD', discount: 'US$10 USD', label: 'Investment-ready rate', note: 'This discounted rate applies to your engagement as an investment-ready business.' }
-      : courtesyAmount === 30
-      ? { price: 'US$30 USD', standard: 'US$50 USD', discount: 'US$20 USD', label: 'Developing-business rate', note: 'This discounted rate applies to help you strengthen your investment readiness.' }
-      : { price: 'US$50 USD', standard: 'US$50 USD', discount: null, label: 'Standard rate', note: 'A discounted rate may apply following your platform assessment.' };
+    courtesyAmount === 29
+      ? { price: '$29 USD', standard: '$50 USD', discount: '$21 USD', label: 'Investment-ready rate', note: 'This discounted rate applies to your engagement as an investment-ready business.' }
+      : courtesyAmount === 19
+      ? { price: '$19 USD', standard: '$50 USD', discount: '$31 USD', label: 'Developing-business rate', note: 'This discounted rate applies to help you strengthen your investment readiness.' }
+      : { price: '$50 USD', standard: '$50 USD', discount: null, label: 'Standard rate', note: 'A discounted rate may apply following your platform assessment.' };
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 modal-fade" style={{ background: 'rgba(7,18,36,0.85)', backdropFilter: 'blur(8px)' }}>
@@ -2114,7 +2114,7 @@ function TermsPanel({ quote }) {
             <p className="text-[14.5px] font-semibold text-white">Submission &amp; Assessment Fee</p>
             <span className="text-[10px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold whitespace-nowrap">On submission</span>
           </div>
-          <p className="text-[11px] text-white/40 mb-2">K120 (Zambia) · US$10 USD (rest of world)</p>
+          <p className="text-[11px] text-white/40 mb-2">K120 (Zambia) · $10 USD (rest of world)</p>
           <p className="text-[12.5px] leading-relaxed text-white/50">Non-refundable. Activates the automated platform assessment that returns your decision.</p>
         </div>
 
@@ -2242,7 +2242,7 @@ function Home({ go, openPurchase }) {
                 ['Submission & Assessment Fee', 'Payable on submission. Non-refundable.'],
                 ['Engagement Fee', 'Payable on commencement. Quoted in your Engagement Proposal.'],
                 ['Success Fee', 'Payable only on successful capital mobilisation.'],
-                ['Diagnostic Report fee', 'Standard US$50 USD. Discounted rates apply based on assessment outcome.'],
+                ['Diagnostic Report fee', 'Standard $50 USD. Discounted rates apply based on assessment outcome.'],
               ].map(([k, v]) => (
                 <div key={k} className="border-l-2 border-[#F5B722]/30 pl-4 hover:border-[#F5B722] transition-colors">
                   <Micro className="block mb-2.5">{k}</Micro>
@@ -2412,16 +2412,16 @@ function DiagnosticPage({ go, openPurchase }) {
                 A structured Enterprise Diagnostic that tells you exactly where your business stands today, what is holding it back, and what to do about it. Built for any business considering a raise — whether or not it has passed initial screening.
               </p>
               <div className="flex flex-wrap gap-3">
-                <Btn size="lg" onClick={() => openPurchase(null, 'diagnostic-page')}>Purchase Diagnostic — US$50 USD <Arrow /></Btn>
+                <Btn size="lg" onClick={() => openPurchase(null, 'diagnostic-page')}>Purchase Diagnostic — $50 USD <Arrow /></Btn>
                 <Btn size="lg" variant="ghostLight" onClick={() => go('businesses')}>Submit an opportunity</Btn>
               </div>
             </div>
             <div className="bg-white/[0.03] border border-[#F5B722]/20 rounded-sm p-7 lg:p-8 glow">
               <Micro light className="block mb-6">At a glance</Micro>
               <div className="space-y-5">
-                <div className="flex items-baseline justify-between gap-4 pb-5 border-b border-white/10"><span className="text-[13px] text-white/55">Standard fee</span><span className="serif text-[24px] text-white">US$50 USD</span></div>
-                <div className="flex items-baseline justify-between gap-4 pb-5 border-b border-white/10"><span className="text-[13px] text-white/55">Investment-ready rate</span><span className="serif text-[22px] text-[#F5B722]">US$40 USD</span></div>
-                <div className="flex items-baseline justify-between gap-4 pb-5 border-b border-white/10"><span className="text-[13px] text-white/55">Developing-business rate</span><span className="serif text-[22px] text-[#E0A030]">US$30 USD</span></div>
+                <div className="flex items-baseline justify-between gap-4 pb-5 border-b border-white/10"><span className="text-[13px] text-white/55">Standard fee</span><span className="serif text-[24px] text-white">$50 USD</span></div>
+                <div className="flex items-baseline justify-between gap-4 pb-5 border-b border-white/10"><span className="text-[13px] text-white/55">Investment-ready rate</span><span className="serif text-[22px] text-[#F5B722]">$29 USD</span></div>
+                <div className="flex items-baseline justify-between gap-4 pb-5 border-b border-white/10"><span className="text-[13px] text-white/55">Developing-business rate</span><span className="serif text-[22px] text-[#E0A030]">$19 USD</span></div>
                 <div className="flex items-baseline justify-between gap-4"><span className="text-[13px] text-white/55">Delivery</span><span className="serif text-[18px] text-white">5 business days</span></div>
               </div>
               <p className="mt-6 pt-5 border-t border-white/10 text-[11.5px] leading-relaxed text-white/40">
@@ -2521,7 +2521,7 @@ function DiagnosticPage({ go, openPurchase }) {
 
       <section className="bg-white">
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
-          <SectionHead eyebrow="Pricing" title="Standard fee US$50 USD. Discounted rates apply." sub="The standard Diagnostic Report fee is US$50 USD. Based on your assessment outcome, a discounted rate applies at the point of purchase — US$40 USD for investment-ready businesses, or US$30 USD for those still developing." className="mb-14 max-w-3xl" />
+          <SectionHead eyebrow="Pricing" title="Standard fee $50 USD. Discounted rates apply." sub="The standard Diagnostic Report fee is $50 USD. Based on your assessment outcome, a discounted rate applies at the point of purchase — $29 USD for investment-ready businesses, or $19 USD for those still developing." className="mb-14 max-w-3xl" />
           <div className="grid lg:grid-cols-2 gap-6 mb-10">
             <div className="bg-[#071224] text-white p-8 lg:p-10 rounded-sm border border-[#F5B722]/30 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-40 h-40 bg-[#F5B722]/10 rounded-full blur-[60px]"></div>
@@ -2531,10 +2531,10 @@ function DiagnosticPage({ go, openPurchase }) {
                   <span className="text-[10px] tracking-[0.14em] uppercase font-semibold text-[#071224] bg-[#F5B722] px-3 py-1 rounded-full">Discounted rate</span>
                 </div>
                 <div className="flex items-baseline gap-3 mb-2">
-                  <span className="serif text-[54px] text-[#F5B722] leading-none">US$40</span>
+                  <span className="serif text-[54px] text-[#F5B722] leading-none">$29</span>
                   <span className="text-[13px] text-white/50">USD</span>
                 </div>
-                <p className="text-[13.5px] text-white/55 mb-7">Discounted from <span className="text-white/70">US$50 USD</span> standard</p>
+                <p className="text-[13.5px] text-white/55 mb-7">Discounted from <span className="text-white/70">$50 USD</span> standard</p>
                 <div className="space-y-3 pt-6 border-t border-white/10">
                   <p className="text-[12.5px] leading-relaxed text-white/50">Applies to businesses assessed as investment-ready or investment-grade by the platform.</p>
                 </div>
@@ -2548,10 +2548,10 @@ function DiagnosticPage({ go, openPurchase }) {
                   <span className="text-[10px] tracking-[0.14em] uppercase font-semibold text-white bg-[#E0A030] px-3 py-1 rounded-full">Discounted rate</span>
                 </div>
                 <div className="flex items-baseline gap-3 mb-2">
-                  <span className="serif text-[54px] text-[#E0A030] leading-none">US$30</span>
+                  <span className="serif text-[54px] text-[#E0A030] leading-none">$19</span>
                   <span className="text-[13px] text-[#071224]/50">USD</span>
                 </div>
-                <p className="text-[13.5px] text-[#071224]/55 mb-7">Discounted from <span className="text-[#071224]/70">US$50 USD</span> standard</p>
+                <p className="text-[13.5px] text-[#071224]/55 mb-7">Discounted from <span className="text-[#071224]/70">$50 USD</span> standard</p>
                 <div className="space-y-3 pt-6 border-t border-[#071224]/8">
                   <p className="text-[12.5px] leading-relaxed text-[#071224]/55">Applies to businesses that have not yet met the platform's investment-readiness criteria.</p>
                 </div>
@@ -2565,7 +2565,7 @@ function DiagnosticPage({ go, openPurchase }) {
                 <p className="text-[12.5px] leading-relaxed text-[#071224]/55">The discounted rate is the price you pay — there is no refund mechanic and no advance payment at the standard rate. Where you proceed to engagement, your Diagnostic discount is carried forward as a courtesy credit toward the Engagement Fee.</p>
               </div>
               <div className="md:text-right">
-                <Btn onClick={() => openPurchase(null, 'pricing-section')}>Purchase Diagnostic — US$50 USD <Arrow /></Btn>
+                <Btn onClick={() => openPurchase(null, 'pricing-section')}>Purchase Diagnostic — $50 USD <Arrow /></Btn>
               </div>
             </div>
           </div>
@@ -2577,7 +2577,7 @@ function DiagnosticPage({ go, openPurchase }) {
           <SectionHead light eyebrow="How it works" title="Purchase. Submit. Receive." sub="A short, focused process designed to respect your time and deliver real value." className="mb-16 max-w-3xl" />
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 rounded-sm overflow-hidden">
             {[
-              { n: '01', t: 'Purchase', d: 'Pay the applicable Diagnostic fee — US$40 USD or US$30 USD if a discount applies, or US$50 USD standard. You receive immediate confirmation and a short intake form.' },
+              { n: '01', t: 'Purchase', d: 'Pay the applicable Diagnostic fee — $29 USD or $19 USD if a discount applies, or $50 USD standard. You receive immediate confirmation and a short intake form.' },
               { n: '02', t: 'Submit', d: 'Complete the intake — or reuse your platform assessment. No repeated questions.' },
               { n: '03', t: 'Diagnostic', d: 'We analyse your stage, constraints and interventions, drawing on your financials, governance and readiness data.' },
               { n: '04', t: 'Receive', d: 'Your Structured Enterprise Diagnostic Report is delivered as a PDF within five business days.' },
@@ -2628,7 +2628,7 @@ function DiagnosticPage({ go, openPurchase }) {
               <p className="text-[15.5px] leading-relaxed text-white/50 max-w-xl">A structured Enterprise Diagnostic that replaces guesswork with a clear assessment of your stage, your constraints and the interventions that will unlock growth.</p>
             </div>
             <div className="flex flex-col sm:flex-row lg:flex-col gap-4 lg:items-end">
-              <Btn size="lg" variant="primary" onClick={() => openPurchase(null, 'diagnostic-footer')}>Purchase Diagnostic — US$50 USD <Arrow /></Btn>
+              <Btn size="lg" variant="primary" onClick={() => openPurchase(null, 'diagnostic-footer')}>Purchase Diagnostic — $50 USD <Arrow /></Btn>
               <Btn size="lg" variant="ghostLight" onClick={() => go('businesses')}>Submit an opportunity</Btn>
             </div>
           </div>
@@ -2678,7 +2678,7 @@ function CapitalFit({ go, onComplete }) {
             <p className="text-[15.5px] leading-relaxed text-[#071224]/55 mb-10">This orientation helps frame your opportunity. To receive the full automated screening and a formal decision, submit your opportunity and pay the non-refundable Submission &amp; Assessment Fee.</p>
             <div className="bg-[#071224] p-6 lg:p-8 rounded-sm mb-10">
               <div className="flex flex-wrap items-center gap-3 mb-4"><span className="w-2 h-2 rounded-full bg-[#F5B722] pulse-soft"></span><Micro light>Next step — Paid submission</Micro></div>
-              <p className="text-[14px] text-white/60 mb-5">Submission &amp; Assessment Fee: <strong className="text-[#F5B722]">K120 (Zambia)</strong> · <strong className="text-[#F5B722]">US$10 USD (rest of world)</strong>.</p>
+              <p className="text-[14px] text-white/60 mb-5">Submission &amp; Assessment Fee: <strong className="text-[#F5B722]">K120 (Zambia)</strong> · <strong className="text-[#F5B722]">$10 USD (rest of world)</strong>.</p>
               <Btn variant="primary" onClick={() => onComplete(answers)}>Proceed to submission <Arrow /></Btn>
             </div>
             <Btn variant="ghost" onClick={() => { setDone(false); setStep(0); }}>Change my answers</Btn>
@@ -2743,8 +2743,8 @@ function CapitalFit({ go, onComplete }) {
    ============================================================ */
 function DiagnosticInlineOffer({ decision, onPurchase }) {
   const investmentReady = decision === 'approve';
-  const rate = investmentReady ? 'US$40 USD' : 'US$30 USD';
-  const discount = investmentReady ? 'US$10 USD' : 'US$20 USD';
+  const rate = investmentReady ? '$29 USD' : '$19 USD';
+  const discount = investmentReady ? '$21 USD' : '$31 USD';
   return (
     <div className="bg-gradient-to-br from-[#071224] to-[#0F203A] p-6 lg:p-8 rounded-sm border border-[#F5B722]/30 mt-10 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-48 h-48 bg-[#F5B722]/10 rounded-full blur-[70px] pointer-events-none"></div>
@@ -2761,12 +2761,12 @@ function DiagnosticInlineOffer({ decision, onPurchase }) {
           {investmentReady ? 'You qualify for the investment-ready discounted rate. The diagnostic gives you a formal read on your stage, your constraints and the interventions that will strengthen your position further.' : 'You qualify for the developing-business discounted rate. The diagnostic tells you exactly which constraints to address, in what order, and what to expect from each intervention.'}
         </p>
         <div className="grid sm:grid-cols-3 gap-4 mb-6">
-          <div className="p-4 rounded-sm bg-white/[0.04] border border-white/10"><p className="text-[10.5px] tracking-[0.12em] uppercase text-white/40 font-semibold mb-1.5">Standard fee</p><p className="serif text-[20px] text-white/70">US$50 USD</p></div>
+          <div className="p-4 rounded-sm bg-white/[0.04] border border-white/10"><p className="text-[10.5px] tracking-[0.12em] uppercase text-white/40 font-semibold mb-1.5">Standard fee</p><p className="serif text-[20px] text-white/70">$50 USD</p></div>
           <div className="p-4 rounded-sm bg-white/[0.04] border border-white/10"><p className="text-[10.5px] tracking-[0.12em] uppercase text-white/40 font-semibold mb-1.5">Your discount</p><p className="serif text-[20px] text-[#F5B722]">− {discount}</p></div>
           <div className="p-4 rounded-sm bg-white/[0.04] border border-[#F5B722]/30"><p className="text-[10.5px] tracking-[0.12em] uppercase text-[#F5B722] font-semibold mb-1.5">Your rate</p><p className="serif text-[20px] text-[#F5B722]">{rate}</p></div>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Btn onClick={onPurchase}>Purchase Enterprise Diagnostic <Arrow /></Btn>
+          <Btn onClick={() => onPurchase(investmentReady ? 29 : 19)}>Purchase Enterprise Diagnostic <Arrow /></Btn>
         </div>
       </div>
     </div>
@@ -2850,7 +2850,7 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
             <Micro className="block mb-6">{messages.tag} — {refCode}</Micro>
             <h1 className="serif text-[clamp(2rem,5vw,3.2rem)] leading-[1.1] text-[#071224] mb-6">{messages.title}</h1>
             <p className="text-[16px] leading-relaxed text-[#071224]/55 max-w-2xl mb-10">{messages.body}</p>
-            <DiagnosticInlineOffer decision={decision} onPurchase={() => openPurchase(30, 'submitted-result')} />
+            <DiagnosticInlineOffer decision={decision} onPurchase={(credit) => openPurchase(credit, 'submitted-result')} />
           </div>
         </section>
       </div>
@@ -2952,7 +2952,7 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
             {proceedToEngagement ? (
               <EngagementPathwayPanel assessment={assessment} formData={formData} />
             ) : (
-              <DiagnosticInlineOffer decision={decision} onPurchase={() => openPurchase(30, 'assessment-result')} />
+              <DiagnosticInlineOffer decision={decision} onPurchase={(credit) => openPurchase(credit, 'assessment-result')} />
             )}
 
             <div className="mt-10">
@@ -3308,7 +3308,7 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
                 </div>
                 <div className="flex justify-between gap-3 text-[12px]">
                   <span className="text-[#071224]/55">Rest of world</span>
-                  <span className="text-[#071224] font-semibold">US$10 USD</span>
+                  <span className="text-[#071224] font-semibold">$10 USD</span>
                 </div>
               </div>
               <p className="mt-4 text-[11px] leading-relaxed text-[#071224]/40">Payable via Airtel Money, MTN MoMo, Standard Chartered Bank, PayPal or Crypto. Proof is verified via WhatsApp.</p>
@@ -3616,7 +3616,7 @@ function HowItWorks({ go, openPurchase }) {
             </div>
             <div className="mt-6 pt-6 border-t border-[#071224]/8">
               <Micro className="block mb-4">Enterprise Diagnostic</Micro>
-              <p className="text-[13px] leading-relaxed text-[#071224]/60">Standard fee US$50 USD. Discounted rates apply at the point of purchase based on assessment outcome — US$40 USD for investment-ready businesses, US$30 USD for those still developing.</p>
+              <p className="text-[13px] leading-relaxed text-[#071224]/60">Standard fee $50 USD. Discounted rates apply at the point of purchase based on assessment outcome — $29 USD for investment-ready businesses, $19 USD for those still developing.</p>
             </div>
           </div>
         </div>
@@ -3654,7 +3654,7 @@ function HowItWorks({ go, openPurchase }) {
               </div>
               <div className="flex flex-wrap gap-3">
                 <Btn variant="primary" onClick={() => go('diagnostic')}>Explore the Diagnostic <Arrow /></Btn>
-                <Btn variant="ghostLight" onClick={() => openPurchase(null, 'how-it-works')}>Purchase — US$50 USD</Btn>
+                <Btn variant="ghostLight" onClick={() => openPurchase(null, 'how-it-works')}>Purchase — $50 USD</Btn>
               </div>
             </div>
             <div className="bg-white/[0.03] border border-[#F5B722]/20 rounded-sm p-6">
@@ -3662,15 +3662,15 @@ function HowItWorks({ go, openPurchase }) {
               <div className="space-y-4">
                 <div className="flex items-baseline justify-between pb-4 border-b border-white/10">
                   <span className="text-[12.5px] text-white/55">Standard fee</span>
-                  <span className="serif text-[18px] text-white/70">US$50 USD</span>
+                  <span className="serif text-[18px] text-white/70">$50 USD</span>
                 </div>
                 <div className="flex items-baseline justify-between pb-4 border-b border-white/10">
                   <span className="text-[12.5px] text-white/55">Investment-ready</span>
-                  <span className="serif text-[20px] text-[#F5B722]">US$40 USD</span>
+                  <span className="serif text-[20px] text-[#F5B722]">$29 USD</span>
                 </div>
                 <div className="flex items-baseline justify-between">
                   <span className="text-[12.5px] text-white/55">Developing business</span>
-                  <span className="serif text-[20px] text-[#E0A030]">US$30 USD</span>
+                  <span className="serif text-[20px] text-[#E0A030]">$19 USD</span>
                 </div>
               </div>
               <p className="mt-5 pt-5 border-t border-white/10 text-[11px] leading-relaxed text-white/40">Discounted rate is applied at the point of purchase based on your assessment outcome.</p>
