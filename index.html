@@ -7,21 +7,40 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --navy: #071224;
+    --navy-light: #0F203A;
+    --navy-lighter: #1A2D4A;
+    --yellow: #F5B722;
+    --yellow-hover: #FFCA3A;
+    --light: #F0F4F8;
+    --white: #FFFFFF;
+  }
   html { scroll-behavior: smooth; }
-  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
-  .serif { font-family: 'Instrument Serif', Georgia, 'Times New Roman', serif; font-weight: 400; }
-  .micro { font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 500; }
-  ::selection { background: #B0863C; color: #F7F5F0; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; background-color: var(--light); }
+  .serif { font-family: 'Playfair Display', Georgia, serif; }
+  .micro { font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 600; }
+  ::selection { background: var(--yellow); color: var(--navy); }
   input, select, textarea { font-family: 'Inter', system-ui, sans-serif; }
   input:focus, select:focus, textarea:focus { outline: none; }
-  .fadein { animation: fadein .45s cubic-bezier(.22,.61,.36,1) both; }
-  @keyframes fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  
+  .fadein { animation: fadein .5s cubic-bezier(.22,.61,.36,1) both; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
   .fadein-s { animation: fadein .3s ease both; }
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: #EFEBE3; }
-  ::-webkit-scrollbar-thumb { background: #C9C2B4; border-radius: 0; }
+  .slide-up { animation: slideUp .4s ease both; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+  .pulse-soft { animation: pulseSoft 2s infinite ease-in-out; }
+  @keyframes pulseSoft { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+  
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--navy); }
+  ::-webkit-scrollbar-thumb { background: var(--yellow); border-radius: 4px; }
+  
+  .glass { background: rgba(15, 32, 58, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+  .glow { box-shadow: 0 0 20px rgba(245, 183, 34, 0.15); }
+  .glow-hover:hover { box-shadow: 0 0 30px rgba(245, 183, 34, 0.3); }
 </style>
 </head>
 <body>
@@ -35,15 +54,21 @@
 const { useState, useMemo, useEffect, useRef, useCallback } = React;
 
 /* ============================================================
-   TOKENS
+   BRAND TOKENS
    ============================================================ */
-const INK = '#0C1014';
-const INK2 = '#141A21';
-const INK3 = '#1E262F';
-const PAPER = '#F7F5F0';
-const PAPER2 = '#EFEBE3';
-const BRASS = '#B0863C';
-const BRASS_LT = '#D2A85F';
+const C = {
+  navy: '#071224',
+  navyLight: '#0F203A',
+  navyLighter: '#1A2D4A',
+  yellow: '#F5B722',
+  yellowHover: '#FFCA3A',
+  light: '#F0F4F8',
+  white: '#FFFFFF',
+  textMuted: 'rgba(255,255,255,0.55)',
+  textMutedLight: 'rgba(7,18,36,0.55)',
+  borderDark: 'rgba(245,183,34,0.15)',
+  borderLight: 'rgba(7,18,36,0.1)',
+};
 
 /* ============================================================
    DATA
@@ -67,9 +92,7 @@ const COUNTRIES = [
 ];
 
 const CURRENCIES = ['USD','EUR','GBP','ZAR','KES','NGN','GHS','XOF','XAF','MAD','EGP','AED','Other'];
-
 const STAGES = ['Pre-revenue / early','Revenue-generating','Profitable & scaling','Mature / established'];
-
 const CAPITAL_TYPES = [
   { v: 'Equity', d: 'Permanent or long-dated equity capital' },
   { v: 'Growth capital', d: 'Expansion capital without full control' },
@@ -78,16 +101,13 @@ const CAPITAL_TYPES = [
   { v: 'Project & infrastructure capital', d: 'Asset-backed, project-financed' },
   { v: 'Other', d: 'Structured, mezzanine, revenue-based, hybrid' }
 ];
-
 const AMOUNTS = ['Under $1m','$1m – $5m','$5m – $10m','$10m – $25m','$25m – $50m','$50m+'];
-
 const GEOS = [
   { v: 'Africa', d: 'The opportunity is on the continent' },
   { v: 'Africa expansion', d: 'Existing business expanding across Africa' },
   { v: 'African acquisition', d: 'Acquiring an African business or asset' },
   { v: 'Other', d: 'Outside Africa or multi-region' }
 ];
-
 const PURPOSES = [
   'Growth capital','Expansion capital','Acquisition capital','Project capital',
   'Working capital','Balance sheet strengthening','Strategic investor','Refinancing','Other'
@@ -103,90 +123,29 @@ function computeFit(a) {
     if (ex) { if (why && !ex.reasons.includes(why)) ex.reasons.push(why); return; }
     cats.push({ name, blurb, ticket, reasons: why ? [why] : [] });
   };
-
   const t = a.capitalType, amt = a.amount, geo = a.geography, st = a.stage;
 
-  if (t === 'Equity') {
-    add('Growth equity funds', 'Funds taking minority or significant-minority positions in revenue-generating businesses.', '$3m – $25m', 'You are seeking equity capital');
-    add('Private equity', 'Control and co-control investors with sector theses and operational capability.', '$5m – $50m', 'Equity mandate');
-  }
-  if (t === 'Growth capital') {
-    add('Growth capital funds', 'Dedicated growth investors funding expansion without requiring control.', '$3m – $25m', 'Growth capital mandate');
-    add('Family offices', 'Patient private capital with flexible structures and longer horizons.', '$1m – $20m', 'Growth capital mandate');
-  }
-  if (t === 'Strategic capital') {
-    add('Strategic & corporate investors', 'Corporates investing for commercial synergy alongside financial return.', '$5m+', 'Strategic capital mandate');
-    add('Family offices', 'Patient private capital with flexible structures and longer horizons.', '$1m – $20m', 'Strategic capital mandate');
-  }
-  if (t === 'Acquisition capital') {
-    add('Acquisition & buy-and-build capital', 'Investors backing buy-outs, buy-ins and consolidation strategies.', '$5m – $100m', 'Acquisition mandate');
-    add('Private equity', 'Control and co-control investors with sector theses and operational capability.', '$5m – $50m', 'Acquisition mandate');
-    add('Mezzanine & structured capital', 'Subordinated debt and hybrid capital sitting between senior debt and equity.', '$5m – $30m', 'Acquisition mandate');
-  }
-  if (t === 'Project & infrastructure capital') {
-    add('Project & infrastructure capital', 'Asset-backed investors funding defined projects with contracted cash flows.', '$10m – $250m', 'Project & infrastructure mandate');
-    add('Development finance institutions', 'DFIs deploying long-dated capital with development mandates.', '$10m – $100m', 'Project & infrastructure mandate');
-    add('Sovereign & institutional capital', 'Large-ticket institutional allocators and sovereign investors.', '$25m+', 'Project & infrastructure mandate');
-  }
-  if (t === 'Other') {
-    add('Family offices', 'Patient private capital with flexible structures and longer horizons.', '$1m – $20m', 'Flexible / structured mandate');
-    add('Mezzanine & structured capital', 'Subordinated debt and hybrid capital sitting between senior debt and equity.', '$5m – $30m', 'Flexible / structured mandate');
-  }
+  if (t === 'Equity') { add('Growth equity funds', 'Funds taking minority or significant-minority positions in revenue-generating businesses.', '$3m – $25m', 'You are seeking equity capital'); add('Private equity', 'Control and co-control investors with sector theses and operational capability.', '$5m – $50m', 'Equity mandate'); }
+  if (t === 'Growth capital') { add('Growth capital funds', 'Dedicated growth investors funding expansion without requiring control.', '$3m – $25m', 'Growth capital mandate'); add('Family offices', 'Patient private capital with flexible structures and longer horizons.', '$1m – $20m', 'Growth capital mandate'); }
+  if (t === 'Strategic capital') { add('Strategic & corporate investors', 'Corporates investing for commercial synergy alongside financial return.', '$5m+', 'Strategic capital mandate'); add('Family offices', 'Patient private capital with flexible structures and longer horizons.', '$1m – $20m', 'Strategic capital mandate'); }
+  if (t === 'Acquisition capital') { add('Acquisition & buy-and-build capital', 'Investors backing buy-outs, buy-ins and consolidation strategies.', '$5m – $100m', 'Acquisition mandate'); add('Private equity', 'Control and co-control investors with sector theses and operational capability.', '$5m – $50m', 'Acquisition mandate'); add('Mezzanine & structured capital', 'Subordinated debt and hybrid capital sitting between senior debt and equity.', '$5m – $30m', 'Acquisition mandate'); }
+  if (t === 'Project & infrastructure capital') { add('Project & infrastructure capital', 'Asset-backed investors funding defined projects with contracted cash flows.', '$10m – $250m', 'Project & infrastructure mandate'); add('Development finance institutions', 'DFIs deploying long-dated capital with development mandates.', '$10m – $100m', 'Project & infrastructure mandate'); add('Sovereign & institutional capital', 'Large-ticket institutional allocators and sovereign investors.', '$25m+', 'Project & infrastructure mandate'); }
+  if (t === 'Other') { add('Family offices', 'Patient private capital with flexible structures and longer horizons.', '$1m – $20m', 'Flexible / structured mandate'); add('Mezzanine & structured capital', 'Subordinated debt and hybrid capital sitting between senior debt and equity.', '$5m – $30m', 'Flexible / structured mandate'); }
 
-  if (amt === 'Under $1m') {
-    add('Angel & early-stage networks', 'Individual and syndicate investors backing early-stage businesses.', '$100k – $2m', 'Ticket size under $1m');
-    add('Revenue-based & structured finance', 'Non-dilutive capital repaid as a percentage of revenue.', '$250k – $5m', 'Ticket size under $1m');
-  }
-  if (amt === '$1m – $5m') {
-    add('Family offices', 'Patient private capital with flexible structures and longer horizons.', '$1m – $20m', 'Ticket size $1m – $5m');
-    add('Impact & blended finance', 'Investors targeting measurable impact alongside financial return.', '$1m – $25m', 'Ticket size $1m – $5m');
-    add('Pan-African growth funds', 'Regional funds with on-the-ground presence across African markets.', '$2m – $20m', 'Ticket size $1m – $5m');
-  }
-  if (amt === '$5m – $10m') {
-    add('Growth capital funds', 'Dedicated growth investors funding expansion without requiring control.', '$3m – $25m', 'Ticket size $5m – $10m');
-    add('Pan-African growth funds', 'Regional funds with on-the-ground presence across African markets.', '$2m – $20m', 'Ticket size $5m – $10m');
-    add('Regional private credit funds', 'Senior and unitranche lenders providing non-dilutive growth funding.', '$5m – $50m', 'Ticket size $5m – $10m');
-  }
-  if (amt === '$10m – $25m') {
-    add('Private equity', 'Control and co-control investors with sector theses and operational capability.', '$5m – $50m', 'Ticket size $10m – $25m');
-    add('Development finance institutions', 'DFIs deploying long-dated capital with development mandates.', '$10m – $100m', 'Ticket size $10m – $25m');
-    add('Mezzanine & structured capital', 'Subordinated debt and hybrid capital sitting between senior debt and equity.', '$5m – $30m', 'Ticket size $10m – $25m');
-  }
-  if (amt === '$25m – $50m' || amt === '$50m+') {
-    add('Sovereign & institutional capital', 'Large-ticket institutional allocators and sovereign investors.', '$25m+', 'Ticket size above $25m');
-    add('Development finance institutions', 'DFIs deploying long-dated capital with development mandates.', '$10m – $100m', 'Ticket size above $25m');
-    add('Project & infrastructure capital', 'Asset-backed investors funding defined projects with contracted cash flows.', '$10m – $250m', 'Large-ticket mandate');
-  }
+  if (amt === 'Under $1m') { add('Angel & early-stage networks', 'Individual and syndicate investors backing early-stage businesses.', '$100k – $2m', 'Ticket size under $1m'); add('Revenue-based & structured finance', 'Non-dilutive capital repaid as a percentage of revenue.', '$250k – $5m', 'Ticket size under $1m'); }
+  if (amt === '$1m – $5m') { add('Family offices', 'Patient private capital with flexible structures and longer horizons.', '$1m – $20m', 'Ticket size $1m – $5m'); add('Impact & blended finance', 'Investors targeting measurable impact alongside financial return.', '$1m – $25m', 'Ticket size $1m – $5m'); add('Pan-African growth funds', 'Regional funds with on-the-ground presence across African markets.', '$2m – $20m', 'Ticket size $1m – $5m'); }
+  if (amt === '$5m – $10m') { add('Growth capital funds', 'Dedicated growth investors funding expansion without requiring control.', '$3m – $25m', 'Ticket size $5m – $10m'); add('Pan-African growth funds', 'Regional funds with on-the-ground presence across African markets.', '$2m – $20m', 'Ticket size $5m – $10m'); add('Regional private credit funds', 'Senior and unitranche lenders providing non-dilutive growth funding.', '$5m – $50m', 'Ticket size $5m – $10m'); }
+  if (amt === '$10m – $25m') { add('Private equity', 'Control and co-control investors with sector theses and operational capability.', '$5m – $50m', 'Ticket size $10m – $25m'); add('Development finance institutions', 'DFIs deploying long-dated capital with development mandates.', '$10m – $100m', 'Ticket size $10m – $25m'); add('Mezzanine & structured capital', 'Subordinated debt and hybrid capital sitting between senior debt and equity.', '$5m – $30m', 'Ticket size $10m – $25m'); }
+  if (amt === '$25m – $50m' || amt === '$50m+') { add('Sovereign & institutional capital', 'Large-ticket institutional allocators and sovereign investors.', '$25m+', 'Ticket size above $25m'); add('Development finance institutions', 'DFIs deploying long-dated capital with development mandates.', '$10m – $100m', 'Ticket size above $25m'); add('Project & infrastructure capital', 'Asset-backed investors funding defined projects with contracted cash flows.', '$10m – $250m', 'Large-ticket mandate'); }
 
-  if (geo === 'Africa') {
-    add('Development finance institutions', 'DFIs deploying long-dated capital with development mandates.', '$10m – $100m', 'African opportunity');
-    add('Impact & blended finance', 'Investors targeting measurable impact alongside financial return.', '$1m – $25m', 'African opportunity');
-    add('Pan-African growth funds', 'Regional funds with on-the-ground presence across African markets.', '$2m – $20m', 'African opportunity');
-  }
-  if (geo === 'Africa expansion') {
-    add('Pan-African growth funds', 'Regional funds with on-the-ground presence across African markets.', '$2m – $20m', 'Pan-African expansion');
-    add('Development finance institutions', 'DFIs deploying long-dated capital with development mandates.', '$10m – $100m', 'Pan-African expansion');
-  }
-  if (geo === 'African acquisition') {
-    add('Acquisition & buy-and-build capital', 'Investors backing buy-outs, buy-ins and consolidation strategies.', '$5m – $100m', 'African acquisition');
-  }
+  if (geo === 'Africa') { add('Development finance institutions', 'DFIs deploying long-dated capital with development mandates.', '$10m – $100m', 'African opportunity'); add('Impact & blended finance', 'Investors targeting measurable impact alongside financial return.', '$1m – $25m', 'African opportunity'); add('Pan-African growth funds', 'Regional funds with on-the-ground presence across African markets.', '$2m – $20m', 'African opportunity'); }
+  if (geo === 'Africa expansion') { add('Pan-African growth funds', 'Regional funds with on-the-ground presence across African markets.', '$2m – $20m', 'Pan-African expansion'); add('Development finance institutions', 'DFIs deploying long-dated capital with development mandates.', '$10m – $100m', 'Pan-African expansion'); }
+  if (geo === 'African acquisition') { add('Acquisition & buy-and-build capital', 'Investors backing buy-outs, buy-ins and consolidation strategies.', '$5m – $100m', 'African acquisition'); }
 
-  if (st === 'Pre-revenue / early') {
-    add('Angel & early-stage networks', 'Individual and syndicate investors backing early-stage businesses.', '$100k – $2m', 'Early-stage business');
-    add('Impact & blended finance', 'Investors targeting measurable impact alongside financial return.', '$1m – $25m', 'Early-stage business');
-  }
-  if (st === 'Revenue-generating') {
-    add('Growth capital funds', 'Dedicated growth investors funding expansion without requiring control.', '$3m – $25m', 'Revenue-generating');
-    add('Family offices', 'Patient private capital with flexible structures and longer horizons.', '$1m – $20m', 'Revenue-generating');
-  }
-  if (st === 'Profitable & scaling') {
-    add('Private equity', 'Control and co-control investors with sector theses and operational capability.', '$5m – $50m', 'Profitable & scaling');
-    add('Mezzanine & structured capital', 'Subordinated debt and hybrid capital sitting between senior debt and equity.', '$5m – $30m', 'Profitable & scaling');
-  }
-  if (st === 'Mature / established') {
-    add('Sovereign & institutional capital', 'Large-ticket institutional allocators and sovereign investors.', '$25m+', 'Mature business');
-    add('Private equity', 'Control and co-control investors with sector theses and operational capability.', '$5m – $50m', 'Mature business');
-  }
+  if (st === 'Pre-revenue / early') { add('Angel & early-stage networks', 'Individual and syndicate investors backing early-stage businesses.', '$100k – $2m', 'Early-stage business'); add('Impact & blended finance', 'Investors targeting measurable impact alongside financial return.', '$1m – $25m', 'Early-stage business'); }
+  if (st === 'Revenue-generating') { add('Growth capital funds', 'Dedicated growth investors funding expansion without requiring control.', '$3m – $25m', 'Revenue-generating'); add('Family offices', 'Patient private capital with flexible structures and longer horizons.', '$1m – $20m', 'Revenue-generating'); }
+  if (st === 'Profitable & scaling') { add('Private equity', 'Control and co-control investors with sector theses and operational capability.', '$5m – $50m', 'Profitable & scaling'); add('Mezzanine & structured capital', 'Subordinated debt and hybrid capital sitting between senior debt and equity.', '$5m – $30m', 'Profitable & scaling'); }
+  if (st === 'Mature / established') { add('Sovereign & institutional capital', 'Large-ticket institutional allocators and sovereign investors.', '$25m+', 'Mature business'); add('Private equity', 'Control and co-control investors with sector theses and operational capability.', '$5m – $50m', 'Mature business'); }
 
   cats.sort((x, y) => y.reasons.length - x.reasons.length);
   return cats.slice(0, 5);
@@ -195,23 +154,19 @@ function computeFit(a) {
 /* ============================================================
    PRIMITIVES
    ============================================================ */
-function Micro({ children, className = '', tone = 'dark' }) {
-  return (
-    <span className={`micro ${tone === 'light' ? 'text-white/45' : 'text-[#0C1014]/45'} ${className}`}>
-      {children}
-    </span>
-  );
+function Micro({ children, className = '', light = false }) {
+  return <span className={`micro ${light ? 'text-[#F5B722]' : 'text-[#071224]/50'} ${className}`}>{children}</span>;
 }
 
 function Btn({ children, onClick, variant = 'primary', size = 'md', className = '', type = 'button', disabled }) {
-  const base = 'inline-flex items-center justify-center gap-2.5 transition-all duration-200 tracking-wide disabled:opacity-30 disabled:cursor-not-allowed';
-  const sizes = { sm: 'text-[12px] px-4 py-2.5', md: 'text-[13px] px-6 py-3.5', lg: 'text-[13px] px-8 py-4' };
+  const base = 'inline-flex items-center justify-center gap-2.5 transition-all duration-300 tracking-wide disabled:opacity-30 disabled:cursor-not-allowed rounded-sm font-medium';
+  const sizes = { sm: 'text-[12px] px-4 py-2.5', md: 'text-[13px] px-6 py-3.5', lg: 'text-[13.5px] px-8 py-4' };
   const variants = {
-    primary: 'bg-[#0C1014] text-[#F7F5F0] hover:bg-[#B0863C]',
-    brass: 'bg-[#B0863C] text-[#0C1014] hover:bg-[#D2A85F] font-medium',
-    ghost: 'border border-[#0C1014]/20 text-[#0C1014] hover:border-[#0C1014] hover:bg-[#0C1014] hover:text-[#F7F5F0]',
-    ghostLight: 'border border-white/25 text-[#F7F5F0] hover:bg-[#F7F5F0] hover:text-[#0C1014] hover:border-[#F7F5F0]',
-    bare: 'text-[#0C1014] hover:text-[#B0863C] px-0'
+    primary: 'bg-[#F5B722] text-[#071224] hover:bg-[#FFCA3A] hover:shadow-[0_0_20px_rgba(245,183,34,0.3)]',
+    ghost: 'border border-[#071224]/20 text-[#071224] hover:border-[#F5B722] hover:bg-[#F5B722]/5',
+    ghostLight: 'border border-white/20 text-white hover:bg-[#F5B722] hover:text-[#071224] hover:border-[#F5B722]',
+    navy: 'bg-[#071224] text-white hover:bg-[#0F203A]',
+    bare: 'text-[#071224] hover:text-[#F5B722] px-0'
   };
   return (
     <button type={type} onClick={onClick} disabled={disabled}
@@ -224,7 +179,7 @@ function Btn({ children, onClick, variant = 'primary', size = 'md', className = 
 function Arrow({ className = '' }) {
   return (
     <svg className={className} width="14" height="10" viewBox="0 0 14 10" fill="none">
-      <path d="M9 1L13 5L9 9M13 5H1" stroke="currentColor" strokeWidth="1.2" strokeLinecap="square"/>
+      <path d="M9 1L13 5L9 9M13 5H1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 }
@@ -232,15 +187,15 @@ function Arrow({ className = '' }) {
 function Label({ children, hint, required }) {
   return (
     <div className="flex items-baseline justify-between gap-4 mb-2.5">
-      <label className="text-[12.5px] font-medium text-[#0C1014]">
-        {children}{required && <span className="text-[#B0863C] ml-1">*</span>}
+      <label className="text-[12.5px] font-medium text-[#071224]">
+        {children}{required && <span className="text-[#F5B722] ml-1">*</span>}
       </label>
-      {hint && <span className="text-[11px] text-[#0C1014]/40 text-right">{hint}</span>}
+      {hint && <span className="text-[11px] text-[#071224]/40 text-right">{hint}</span>}
     </div>
   );
 }
 
-const inputCls = "w-full bg-white border border-[#0C1014]/15 px-4 py-3 text-[14px] text-[#0C1014] placeholder-[#0C1014]/25 transition-colors focus:border-[#B0863C] hover:border-[#0C1014]/30";
+const inputCls = "w-full bg-white border border-[#071224]/15 rounded-sm px-4 py-3 text-[14px] text-[#071224] placeholder-[#071224]/25 transition-all duration-200 focus:border-[#F5B722] focus:ring-1 focus:ring-[#F5B722]/30 hover:border-[#071224]/30";
 
 function TextInput({ value, onChange, placeholder, type = 'text' }) {
   return <input type={type} value={value || ''} onChange={e => onChange(e.target.value)} placeholder={placeholder} className={inputCls} />;
@@ -254,12 +209,12 @@ function Select({ value, onChange, options, placeholder = 'Select' }) {
   return (
     <div className="relative">
       <select value={value || ''} onChange={e => onChange(e.target.value)}
-        className={`${inputCls} appearance-none pr-10 cursor-pointer ${!value ? 'text-[#0C1014]/30' : ''}`}>
+        className={`${inputCls} appearance-none pr-10 cursor-pointer ${!value ? 'text-[#071224]/30' : ''}`}>
         <option value="">{placeholder}</option>
-        {options.map(o => <option key={o} value={o} className="text-[#0C1014]">{o}</option>)}
+        {options.map(o => <option key={o} value={o} className="text-[#071224]">{o}</option>)}
       </select>
-      <svg className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#0C1014]/35" width="10" height="6" viewBox="0 0 10 6" fill="none">
-        <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.2"/>
+      <svg className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#071224]/35" width="10" height="6" viewBox="0 0 10 6" fill="none">
+        <path d="M1 1L5 5L9 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
       </svg>
     </div>
   );
@@ -277,25 +232,25 @@ function ChipGroup({ options, value, onChange, multi = false, columns = 2 }) {
   };
   const cols = { 1: 'grid-cols-1', 2: 'grid-cols-1 sm:grid-cols-2', 3: 'grid-cols-1 sm:grid-cols-3' };
   return (
-    <div className={`grid ${cols[columns]} gap-2`}>
+    <div className={`grid ${cols[columns]} gap-2.5`}>
       {options.map(o => {
         const label = typeof o === 'string' ? o : o.v;
         const desc = typeof o === 'string' ? null : o.d;
         const on = isOn(label);
         return (
           <button key={label} type="button" onClick={() => toggle(label)}
-            className={`text-left px-4 py-3 border transition-all duration-150 ${
-              on ? 'border-[#B0863C] bg-[#B0863C]/8' : 'border-[#0C1014]/12 bg-white hover:border-[#0C1014]/35'
+            className={`text-left px-4 py-3.5 rounded-sm border transition-all duration-200 ${
+              on ? 'border-[#F5B722] bg-[#F5B722]/10 shadow-[0_0_15px_rgba(245,183,34,0.1)]' : 'border-[#071224]/12 bg-white hover:border-[#F5B722]/50 hover:bg-[#F5B722]/5'
             }`}>
             <div className="flex items-start gap-3">
-              <span className={`mt-[3px] w-3.5 h-3.5 shrink-0 border flex items-center justify-center transition-colors ${
-                on ? 'border-[#B0863C] bg-[#B0863C]' : 'border-[#0C1014]/25'
+              <span className={`mt-[3px] w-4 h-4 shrink-0 rounded-sm border flex items-center justify-center transition-colors ${
+                on ? 'border-[#F5B722] bg-[#F5B722]' : 'border-[#071224]/25'
               }`}>
-                {on && <svg width="8" height="6" viewBox="0 0 8 6" fill="none"><path d="M1 3L3 5L7 1" stroke="#0C1014" strokeWidth="1.6"/></svg>}
+                {on && <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="#071224" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
               </span>
               <span className="min-w-0">
-                <span className={`block text-[13.5px] leading-snug ${on ? 'text-[#0C1014] font-medium' : 'text-[#0C1014]/80'}`}>{label}</span>
-                {desc && <span className="block text-[11.5px] text-[#0C1014]/45 mt-1 leading-snug">{desc}</span>}
+                <span className={`block text-[13.5px] leading-snug ${on ? 'text-[#071224] font-medium' : 'text-[#071224]/80'}`}>{label}</span>
+                {desc && <span className="block text-[11.5px] text-[#071224]/45 mt-1 leading-snug">{desc}</span>}
               </span>
             </div>
           </button>
@@ -314,28 +269,107 @@ function Field({ label, hint, required, children }) {
   );
 }
 
-function Rule({ light }) {
-  return <div className={`h-px w-full ${light ? 'bg-white/12' : 'bg-[#0C1014]/12'}`} />;
-}
-
 function SectionHead({ index, eyebrow, title, sub, light, className = '' }) {
   return (
     <div className={className}>
       {(index || eyebrow) && (
-        <div className="flex items-center gap-4 mb-5">
-          {index && <span className="serif text-[15px] text-[#B0863C]">{index}</span>}
-          {index && <span className={`h-px w-8 ${light ? 'bg-white/20' : 'bg-[#0C1014]/15'}`} />}
-          {eyebrow && <Micro tone={light ? 'light' : 'dark'}>{eyebrow}</Micro>}
+        <div className="flex items-center gap-4 mb-6">
+          {index && <span className="serif text-[18px] text-[#F5B722]">{index}</span>}
+          {index && <span className={`h-px w-8 ${light ? 'bg-white/20' : 'bg-[#071224]/15'}`} />}
+          {eyebrow && <Micro light={light}>{eyebrow}</Micro>}
         </div>
       )}
-      <h2 className={`serif text-[clamp(1.75rem,4vw,2.75rem)] leading-[1.1] ${light ? 'text-[#F7F5F0]' : 'text-[#0C1014]'}`}>
+      <h2 className={`serif text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.1] ${light ? 'text-white' : 'text-[#071224]'}`}>
         {title}
       </h2>
       {sub && (
-        <p className={`mt-4 text-[15px] leading-relaxed max-w-2xl ${light ? 'text-white/55' : 'text-[#0C1014]/55'}`}>
+        <p className={`mt-5 text-[15.5px] leading-relaxed max-w-2xl ${light ? 'text-white/50' : 'text-[#071224]/55'}`}>
           {sub}
         </p>
       )}
+    </div>
+  );
+}
+
+/* ============================================================
+   SMART MATCH TOOLTIP
+   ============================================================ */
+function SmartMatchTip({ text }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <span className="relative inline-block ml-1.5 align-middle">
+      <button type="button" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)} onClick={() => setOpen(!open)}
+        className="w-4 h-4 rounded-full bg-[#F5B722]/20 text-[#F5B722] text-[10px] flex items-center justify-center font-bold hover:bg-[#F5B722]/40 transition-colors">
+        ?
+      </button>
+      {open && (
+        <span className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-[#071224] text-white text-[11.5px] leading-relaxed rounded shadow-xl z-50 fadein-s border border-[#F5B722]/20">
+          {text}
+          <span className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#071224]"></span>
+        </span>
+      )}
+    </span>
+  );
+}
+
+/* ============================================================
+   FLOATING ASSISTANT
+   ============================================================ */
+function FloatingAssistant() {
+  const [open, setOpen] = useState(false);
+  const [msg, setMsg] = useState('');
+  const [chat, setChat] = useState([
+    { from: 'bot', text: 'Hello! I am the ML Gateway assistant. How can I help you navigate the platform today?' }
+  ]);
+
+  const handleSend = () => {
+    if (!msg.trim()) return;
+    setChat([...chat, { from: 'user', text: msg }]);
+    setMsg('');
+    setTimeout(() => {
+      setChat(prev => [...prev, { from: 'bot', text: 'Thank you. A member of our team will follow up with you shortly. In the meantime, feel free to use the Capital Fit tool or submit an opportunity.' }]);
+    }, 800);
+  };
+
+  return (
+    <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end">
+      {open && (
+        <div className="mb-4 w-80 bg-white rounded-lg shadow-2xl border border-[#071224]/10 overflow-hidden fadein-s">
+          <div className="bg-[#071224] px-5 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-[#F5B722] pulse-soft"></span>
+              <span className="text-[12px] font-medium text-white tracking-wide">MLG Assistant</span>
+            </div>
+            <button onClick={() => setOpen(false)} className="text-white/50 hover:text-white transition-colors">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 1L11 11M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            </button>
+          </div>
+          <div className="h-64 overflow-y-auto p-5 space-y-4 bg-[#F0F4F8]">
+            {chat.map((c, i) => (
+              <div key={i} className={`flex ${c.from === 'user' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[85%] px-3.5 py-2.5 rounded-lg text-[12.5px] leading-relaxed ${
+                  c.from === 'user' ? 'bg-[#F5B722] text-[#071224]' : 'bg-white text-[#071224] border border-[#071224]/5'
+                }`}>
+                  {c.text}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="p-3 bg-white border-t border-[#071224]/5 flex gap-2">
+            <input value={msg} onChange={e => setMsg(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()}
+              placeholder="Type a message..." className="flex-1 text-[12.5px] px-3 py-2 border border-[#071224]/10 rounded focus:border-[#F5B722] outline-none" />
+            <button onClick={handleSend} className="w-8 h-8 rounded bg-[#F5B722] flex items-center justify-center hover:bg-[#FFCA3A] transition-colors">
+              <Arrow className="text-[#071224]" />
+            </button>
+          </div>
+        </div>
+      )}
+      <button onClick={() => setOpen(!open)}
+        className="w-14 h-14 rounded-full bg-[#F5B722] shadow-[0_4px_20px_rgba(245,183,34,0.4)] flex items-center justify-center hover:scale-105 transition-transform duration-300 group">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#071224" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-12 transition-transform">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </button>
     </div>
   );
 }
@@ -358,7 +392,7 @@ function Nav({ route, go }) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const h = () => setScrolled(window.scrollY > 12);
+    const h = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', h);
     return () => window.removeEventListener('scroll', h);
   }, []);
@@ -367,52 +401,51 @@ function Nav({ route, go }) {
 
   return (
     <header className={`sticky top-0 z-50 transition-all duration-300 ${
-      scrolled ? 'bg-[#F7F5F0]/95 backdrop-blur-md border-b border-[#0C1014]/10' : 'bg-[#F7F5F0] border-b border-transparent'
+      scrolled ? 'bg-[#071224]/95 backdrop-blur-md shadow-lg border-b border-[#F5B722]/10' : 'bg-[#071224]'
     }`}>
       <div className="max-w-[1320px] mx-auto px-6 lg:px-10">
-        <div className="flex items-center justify-between h-[70px]">
+        <div className="flex items-center justify-between h-[76px]">
           <button onClick={() => nav('home')} className="flex items-center gap-3 group">
-            <span className="w-8 h-8 border border-[#0C1014] flex items-center justify-center serif text-[13px] text-[#0C1014] group-hover:bg-[#0C1014] group-hover:text-[#F7F5F0] transition-colors">
-              ML
+            <span className="w-10 h-10 border-2 border-[#F5B722] rounded-full flex items-center justify-center relative overflow-hidden">
+              <span className="serif text-[15px] font-bold text-[#F5B722] group-hover:scale-110 transition-transform">M</span>
+              <span className="absolute inset-0 bg-[#F5B722]/10 group-hover:bg-[#F5B722]/20 transition-colors"></span>
             </span>
             <span className="hidden sm:block text-left leading-none">
-              <span className="block text-[13px] font-medium tracking-[0.12em] text-[#0C1014]">ML GATEWAY</span>
-              <span className="block micro text-[#0C1014]/40 mt-1">Private Capital Access</span>
+              <span className="block text-[14px] font-semibold tracking-[0.12em] text-white">ML GATEWAY</span>
+              <span className="block micro text-[#F5B722] mt-1">Private Capital Access</span>
             </span>
           </button>
 
           <nav className="hidden lg:flex items-center gap-7">
             {NAV_LINKS.map(([r, n, label]) => (
               <button key={r} onClick={() => nav(r)}
-                className={`text-[12.5px] tracking-wide transition-colors relative py-1 ${
-                  route === r ? 'text-[#0C1014]' : 'text-[#0C1014]/50 hover:text-[#0C1014]'
+                className={`text-[12.5px] tracking-wide transition-all duration-200 relative py-1 ${
+                  route === r ? 'text-[#F5B722]' : 'text-white/50 hover:text-white'
                 }`}>
                 {label}
-                {route === r && <span className="absolute -bottom-0.5 left-0 right-0 h-px bg-[#B0863C]" />}
+                {route === r && <span className="absolute -bottom-0.5 left-0 right-0 h-[2px] bg-[#F5B722] rounded-full" />}
               </button>
             ))}
           </nav>
 
           <div className="flex items-center gap-3">
-            <Btn size="sm" onClick={() => nav('fit')} className="hidden sm:inline-flex">
-              Find your pathway <Arrow />
-            </Btn>
+            <Btn size="sm" onClick={() => nav('fit')} className="hidden sm:inline-flex">Find your pathway <Arrow /></Btn>
             <button onClick={() => setOpen(!open)} className="lg:hidden w-9 h-9 flex flex-col items-center justify-center gap-[5px]">
-              <span className={`block w-5 h-px bg-[#0C1014] transition-transform ${open ? 'rotate-45 translate-y-[3px]' : ''}`} />
-              <span className={`block w-5 h-px bg-[#0C1014] transition-transform ${open ? '-rotate-45 -translate-y-[3px]' : ''}`} />
+              <span className={`block w-5 h-[2px] bg-white transition-transform rounded-full ${open ? 'rotate-45 translate-y-[3.5px]' : ''}`} />
+              <span className={`block w-5 h-[2px] bg-white transition-transform rounded-full ${open ? '-rotate-45 -translate-y-[3.5px]' : ''}`} />
             </button>
           </div>
         </div>
       </div>
 
       {open && (
-        <div className="lg:hidden border-t border-[#0C1014]/10 bg-[#F7F5F0] fadein-s">
+        <div className="lg:hidden border-t border-white/10 bg-[#071224] fadein-s">
           <div className="px-6 py-4">
             {NAV_LINKS.map(([r, n, label]) => (
               <button key={r} onClick={() => nav(r)}
-                className="w-full flex items-center gap-4 py-3.5 border-b border-[#0C1014]/8 last:border-0 text-left">
-                <span className="serif text-[13px] text-[#B0863C] w-6">{n}</span>
-                <span className={`text-[14px] ${route === r ? 'text-[#0C1014]' : 'text-[#0C1014]/60'}`}>{label}</span>
+                className="w-full flex items-center gap-4 py-3.5 border-b border-white/5 last:border-0 text-left">
+                <span className="serif text-[13px] text-[#F5B722] w-6">{n}</span>
+                <span className={`text-[14px] ${route === r ? 'text-[#F5B722]' : 'text-white/60'}`}>{label}</span>
               </button>
             ))}
             <Btn size="sm" onClick={() => nav('fit')} className="w-full mt-4">Find your pathway <Arrow /></Btn>
@@ -428,13 +461,13 @@ function Nav({ route, go }) {
    ============================================================ */
 function Footer({ go }) {
   return (
-    <footer className="bg-[#0C1014] text-[#F7F5F0]">
+    <footer className="bg-[#071224] text-white border-t border-[#F5B722]/10">
       <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-20">
         <div className="grid lg:grid-cols-[1.4fr_1fr_1fr_1fr] gap-12 lg:gap-10">
           <div>
             <div className="flex items-center gap-3 mb-6">
-              <span className="w-8 h-8 border border-white/25 flex items-center justify-center serif text-[13px]">ML</span>
-              <span className="text-[13px] font-medium tracking-[0.12em]">ML GATEWAY</span>
+              <span className="w-8 h-8 border-2 border-[#F5B722] rounded-full flex items-center justify-center serif text-[13px] text-[#F5B722]">M</span>
+              <span className="text-[13px] font-semibold tracking-[0.12em] text-white">ML GATEWAY</span>
             </div>
             <p className="text-[14px] leading-relaxed text-white/50 max-w-xs">
               Curated private capital access. We match investment- and growth-ready businesses with investors aligned to mandate, sector, stage and geography.
@@ -442,20 +475,20 @@ function Footer({ go }) {
           </div>
 
           <div>
-            <Micro tone="light" className="block mb-5">Platform</Micro>
+            <Micro light className="block mb-5">Platform</Micro>
             <div className="space-y-3">
               {[['businesses', 'Access Private Capital'], ['investors', 'Investment Opportunities'],
                 ['network', 'Join the Capital Network'], ['fit', 'Find Your Capital Pathway']].map(([r, l]) => (
-                <button key={r} onClick={() => go(r)} className="block text-[13.5px] text-white/60 hover:text-[#D2A85F] transition-colors">{l}</button>
+                <button key={r} onClick={() => go(r)} className="block text-[13.5px] text-white/50 hover:text-[#F5B722] transition-colors">{l}</button>
               ))}
             </div>
           </div>
 
           <div>
-            <Micro tone="light" className="block mb-5">Architecture</Micro>
+            <Micro light className="block mb-5">Architecture</Micro>
             <div className="space-y-3">
               {NAV_LINKS.slice(3).map(([r, n, l]) => (
-                <button key={r} onClick={() => go(r)} className="flex items-center gap-3 text-[13.5px] text-white/60 hover:text-[#D2A85F] transition-colors">
+                <button key={r} onClick={() => go(r)} className="flex items-center gap-3 text-[13.5px] text-white/50 hover:text-[#F5B722] transition-colors">
                   <span className="serif text-[11px] text-white/25">{n}</span>{l}
                 </button>
               ))}
@@ -463,8 +496,8 @@ function Footer({ go }) {
           </div>
 
           <div>
-            <Micro tone="light" className="block mb-5">Contact</Micro>
-            <div className="space-y-3 text-[13.5px] text-white/60">
+            <Micro light className="block mb-5">Contact</Micro>
+            <div className="space-y-3 text-[13.5px] text-white/50">
               <p>opportunities@mlgateway.com</p>
               <p>mandates@mlgateway.com</p>
             </div>
@@ -487,15 +520,15 @@ function Footer({ go }) {
    ============================================================ */
 function WhatHappensNext({ items, light }) {
   return (
-    <div className={`p-6 lg:p-7 ${light ? 'bg-white/5 border border-white/10' : 'bg-[#EFEBE3]'}`}>
-      <Micro tone={light ? 'light' : 'dark'} className="block mb-6">What happens after you submit</Micro>
+    <div className={`p-6 lg:p-8 rounded-sm ${light ? 'bg-white/5 border border-white/10' : 'bg-white border border-[#071224]/8'}`}>
+      <Micro light={light} className="block mb-6">What happens after you submit</Micro>
       <div className="space-y-5">
         {items.map((it, i) => (
           <div key={i} className="flex gap-4">
-            <span className="serif text-[13px] text-[#B0863C] w-5 shrink-0 pt-[1px]">{String(i + 1).padStart(2, '0')}</span>
+            <span className="serif text-[14px] text-[#F5B722] w-6 shrink-0 pt-[1px]">{String(i + 1).padStart(2, '0')}</span>
             <div>
-              <p className={`text-[13.5px] font-medium mb-1 ${light ? 'text-[#F7F5F0]' : 'text-[#0C1014]'}`}>{it.t}</p>
-              <p className={`text-[12.5px] leading-relaxed ${light ? 'text-white/45' : 'text-[#0C1014]/50'}`}>{it.d}</p>
+              <p className={`text-[13.5px] font-medium mb-1 ${light ? 'text-white' : 'text-[#071224]'}`}>{it.t}</p>
+              <p className={`text-[12.5px] leading-relaxed ${light ? 'text-white/45' : 'text-[#071224]/50'}`}>{it.d}</p>
             </div>
           </div>
         ))}
@@ -512,17 +545,17 @@ function TermsPanel({ light }) {
     ['Network participation', 'By invitation, no cost'],
   ];
   return (
-    <div className={`p-6 lg:p-7 ${light ? 'bg-white/5 border border-white/10' : 'border border-[#0C1014]/12'}`}>
-      <Micro tone={light ? 'light' : 'dark'} className="block mb-6">What it costs</Micro>
+    <div className={`p-6 lg:p-8 rounded-sm ${light ? 'bg-white/5 border border-white/10' : 'bg-[#071224] text-white'}`}>
+      <Micro light className="block mb-6">What it costs</Micro>
       <div className="space-y-0">
         {rows.map(([k, v], i) => (
-          <div key={i} className={`flex justify-between gap-4 py-3 ${i > 0 ? (light ? 'border-t border-white/8' : 'border-t border-[#0C1014]/8') : ''}`}>
-            <span className={`text-[12.5px] ${light ? 'text-white/50' : 'text-[#0C1014]/55'}`}>{k}</span>
-            <span className={`text-[12.5px] text-right ${light ? 'text-[#F7F5F0]' : 'text-[#0C1014]'}`}>{v}</span>
+          <div key={i} className={`flex justify-between gap-4 py-3.5 ${i > 0 ? 'border-t border-white/10' : ''}`}>
+            <span className={`text-[12.5px] ${light ? 'text-white/50' : 'text-white/60'}`}>{k}</span>
+            <span className={`text-[12.5px] text-right font-medium ${light ? 'text-white' : 'text-[#F5B722]'}`}>{v}</span>
           </div>
         ))}
       </div>
-      <p className={`mt-5 text-[11.5px] leading-relaxed ${light ? 'text-white/30' : 'text-[#0C1014]/35'}`}>
+      <p className={`mt-5 text-[11.5px] leading-relaxed ${light ? 'text-white/30' : 'text-white/40'}`}>
         Indicative structure. Final terms are set out in a written engagement letter before any mandate commences.
       </p>
     </div>
@@ -533,11 +566,13 @@ function TermsPanel({ light }) {
    HOME
    ============================================================ */
 function Home({ go }) {
+  const [activePreview, setActivePreview] = useState(0);
+
   const orientation = [
-    { n: '01', t: "I'm a business seeking capital", d: "Tell us about your business, the opportunity and the capital you are seeking. We'll assess it against our investor network and mandate.", cta: 'Explore Capital Access', r: 'businesses' },
-    { n: '02', t: "I'm an investor seeking opportunities", d: "Tell us your mandate — sectors, geographies, ticket size and stage. We'll surface opportunities aligned to your criteria.", cta: 'Explore Investment Opportunities', r: 'investors' },
-    { n: '03', t: 'I represent a capital provider', d: 'Join our private-capital network and receive opportunities aligned with your mandate.', cta: 'Join the Capital Network', r: 'network' },
-    { n: '04', t: 'I want to understand how this works', d: 'Understand the process, the requirements and what happens at each stage before you commit anything.', cta: 'Understand the Process', r: 'how' },
+    { n: '01', t: "I'm a business seeking capital", d: "Tell us about your business, the opportunity and the capital you are seeking. We'll assess it against our investor network and mandate.", cta: 'Explore Capital Access', r: 'businesses', icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
+    { n: '02', t: "I'm an investor seeking opportunities", d: "Tell us your mandate — sectors, geographies, ticket size and stage. We'll surface opportunities aligned to your criteria.", cta: 'Explore Investment Opportunities', r: 'investors', icon: 'M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6' },
+    { n: '03', t: 'I represent a capital provider', d: 'Join our private-capital network and receive opportunities aligned with your mandate.', cta: 'Join the Capital Network', r: 'network', icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75' },
+    { n: '04', t: 'I want to understand how this works', d: 'Understand the process, the requirements and what happens at each stage before you commit anything.', cta: 'Understand the Process', r: 'how', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
   ];
 
   const steps = [
@@ -547,57 +582,74 @@ function Home({ go }) {
     { n: '04', t: 'Mobilise', d: 'Capital is progressed toward investment through diligence, structuring and close.' },
   ];
 
-  return (
-    <div className="fadein">
-      {/* HERO */}
-      <section className="max-w-[1320px] mx-auto px-6 lg:px-10 pt-16 lg:pt-24 pb-14 lg:pb-20">
-        <div className="grid lg:grid-cols-[1fr_auto] gap-10 items-end mb-14">
-          <div className="max-w-3xl">
-            <Micro className="block mb-7">Private Capital Access</Micro>
-            <h1 className="serif text-[clamp(2.6rem,7vw,5.2rem)] leading-[0.98] text-[#0C1014]">
-              Private capital,<br />
-              matched to <span className="italic text-[#B0863C]">opportunity</span>.
-            </h1>
-            <p className="mt-7 text-[16px] lg:text-[17px] leading-relaxed text-[#0C1014]/55 max-w-xl">
-              ML Gateway connects investment- and growth-ready businesses with relevant private capital through a curated investor network.
-            </p>
-          </div>
-          <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:items-end shrink-0">
-            <Btn size="lg" onClick={() => go('fit')}>Find your capital pathway <Arrow /></Btn>
-            <Btn size="lg" variant="ghost" onClick={() => go('how')}>How it works</Btn>
-          </div>
-        </div>
+  const previewData = [
+    { q: 'What type of capital are you seeking?', opts: ['Equity', 'Growth capital', 'Strategic capital', 'Acquisition capital'], active: 1 },
+    { q: 'How much capital are you seeking?', opts: ['Under $1m', '$1m – $5m', '$5m – $10m', '$10m – $25m', '$25m+'], active: 2 },
+    { q: 'Where is the opportunity?', opts: ['Africa', 'Africa expansion', 'African acquisition', 'Other'], active: 0 },
+  ];
 
-        {/* ORIENTATION INTERFACE */}
-        <div className="border-t border-[#0C1014]/15">
-          <div className="py-5 flex items-center gap-4">
-            <Micro>What brings you here?</Micro>
-            <span className="flex-1 h-px bg-[#0C1014]/10" />
+  return (
+    <div className="fadein bg-[#F0F4F8]">
+      {/* HERO */}
+      <section className="bg-[#071224] text-white pt-16 lg:pt-24 pb-16 lg:pb-24 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#F5B722]/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
+        <div className="max-w-[1320px] mx-auto px-6 lg:px-10 relative z-10">
+          <div className="grid lg:grid-cols-[1fr_auto] gap-10 items-end mb-16">
+            <div className="max-w-3xl">
+              <Micro light className="block mb-8">Private Capital Access</Micro>
+              <h1 className="serif text-[clamp(2.8rem,7.5vw,5.5rem)] leading-[1.05] text-white">
+                Private capital,<br />
+                matched to <span className="italic text-[#F5B722]">opportunity</span>.
+              </h1>
+              <p className="mt-8 text-[16px] lg:text-[18px] leading-relaxed text-white/50 max-w-xl">
+                ML Gateway connects investment- and growth-ready businesses with relevant private capital through a curated investor network.
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:items-end shrink-0">
+              <Btn size="lg" onClick={() => go('fit')}>Find your capital pathway <Arrow /></Btn>
+              <Btn size="lg" variant="ghostLight" onClick={() => go('how')}>How it works</Btn>
+            </div>
           </div>
-          {orientation.map((o) => (
-            <button key={o.n} onClick={() => go(o.r)}
-              className="group w-full text-left border-t border-[#0C1014]/10 py-6 lg:py-7 px-4 lg:px-6 -mx-4 lg:-mx-6 grid grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr_auto] gap-x-6 gap-y-2 items-start hover:bg-[#0C1014] transition-colors duration-200">
-              <span className="serif text-[15px] text-[#B0863C] pt-1">{o.n}</span>
-              <span className="min-w-0">
-                <span className="block serif text-[22px] lg:text-[28px] leading-tight text-[#0C1014] group-hover:text-[#F7F5F0] transition-colors">
-                  {o.t}
-                </span>
-                <span className="block text-[13px] lg:text-[13.5px] leading-relaxed text-[#0C1014]/50 group-hover:text-white/45 transition-colors mt-2 max-w-2xl">
-                  {o.d}
-                </span>
-              </span>
-              <span className="col-span-2 lg:col-span-1 lg:self-center flex items-center gap-3 text-[11px] tracking-[0.14em] uppercase text-[#0C1014]/40 group-hover:text-[#D2A85F] transition-colors whitespace-nowrap">
-                {o.cta}
-                <Arrow className="group-hover:translate-x-1 transition-transform duration-200" />
-              </span>
-            </button>
-          ))}
-          <div className="border-t border-[#0C1014]/10" />
+
+          {/* ORIENTATION INTERFACE */}
+          <div className="border-t border-white/10">
+            <div className="py-5 flex items-center gap-4">
+              <Micro light>What brings you here?</Micro>
+              <span className="flex-1 h-px bg-white/10" />
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10">
+              {orientation.map((o) => (
+                <button key={o.n} onClick={() => go(o.r)}
+                  className="group bg-[#071224] text-left p-6 lg:p-8 hover:bg-[#0F203A] transition-all duration-300 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-[#F5B722]/5 rounded-full blur-[40px] group-hover:bg-[#F5B722]/10 transition-colors"></div>
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-6">
+                      <span className="serif text-[15px] text-[#F5B722]">{o.n}</span>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F5B722" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40 group-hover:opacity-100 transition-opacity">
+                        <path d={o.icon} />
+                      </svg>
+                    </div>
+                    <span className="block serif text-[20px] lg:text-[22px] leading-tight text-white group-hover:text-[#F5B722] transition-colors mb-3">
+                      {o.t}
+                    </span>
+                    <span className="block text-[12.5px] leading-relaxed text-white/40 group-hover:text-white/60 transition-colors mb-6">
+                      {o.d}
+                    </span>
+                    <span className="flex items-center gap-2 text-[10.5px] tracking-[0.14em] uppercase text-[#F5B722] font-medium">
+                      {o.cta}
+                      <Arrow className="group-hover:translate-x-1 transition-transform" />
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div className="border-t border-white/10" />
+          </div>
         </div>
       </section>
 
       {/* DIRECT PATH */}
-      <section className="bg-[#EFEBE3]">
+      <section className="bg-[#F0F4F8]">
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
             <SectionHead
@@ -614,9 +666,9 @@ function Home({ go }) {
                 ['Structure', 'Equity, structured, hybrid'],
                 ['Objective', 'Return, strategic, impact'],
               ].map(([k, v]) => (
-                <div key={k}>
+                <div key={k} className="border-l-2 border-[#F5B722]/30 pl-4 hover:border-[#F5B722] transition-colors">
                   <Micro className="block mb-2.5">{k}</Micro>
-                  <p className="text-[14px] text-[#0C1014]/70 leading-snug">{v}</p>
+                  <p className="text-[14px] text-[#071224]/70 leading-snug">{v}</p>
                 </div>
               ))}
             </div>
@@ -625,15 +677,15 @@ function Home({ go }) {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="bg-[#0C1014] text-[#F7F5F0]">
+      <section className="bg-[#071224] text-white">
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
-          <SectionHead light eyebrow="How it works" title="Four steps, from first submission to capital." className="mb-14" />
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10">
+          <SectionHead light eyebrow="How it works" title="Four steps, from first submission to capital." className="mb-16" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 rounded-sm overflow-hidden">
             {steps.map((s) => (
-              <div key={s.n} className="bg-[#0C1014] p-7 lg:p-8">
-                <span className="serif text-[13px] text-[#B0863C] block mb-6">{s.n}</span>
-                <h3 className="serif text-[24px] mb-3.5">{s.t}</h3>
-                <p className="text-[13px] leading-relaxed text-white/45">{s.d}</p>
+              <div key={s.n} className="bg-[#071224] p-8 lg:p-10 hover:bg-[#0F203A] transition-colors duration-300">
+                <span className="serif text-[16px] text-[#F5B722] block mb-8">{s.n}</span>
+                <h3 className="serif text-[28px] mb-4 text-white">{s.t}</h3>
+                <p className="text-[13.5px] leading-relaxed text-white/45">{s.d}</p>
               </div>
             ))}
           </div>
@@ -644,24 +696,24 @@ function Home({ go }) {
       </section>
 
       {/* STATEMENT */}
-      <section className="bg-[#F7F5F0]">
+      <section className="bg-[#F0F4F8]">
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-20 lg:py-32">
           <div className="max-w-4xl">
             <Micro className="block mb-8">Our position</Micro>
-            <p className="serif text-[clamp(1.9rem,5vw,3.4rem)] leading-[1.12] text-[#0C1014]">
+            <p className="serif text-[clamp(2rem,5.5vw,3.8rem)] leading-[1.1] text-[#071224]">
               No generic investor lists.<br />
               No mass distribution.<br />
-              <span className="italic text-[#B0863C]">No unnecessary introductions.</span>
+              <span className="italic text-[#F5B722]">No unnecessary introductions.</span>
             </p>
-            <p className="mt-9 text-[16px] leading-relaxed text-[#0C1014]/55 max-w-2xl">
+            <p className="mt-10 text-[17px] leading-relaxed text-[#071224]/55 max-w-2xl">
               Curated capital access based on fit. Every introduction is made because the mandate matches the opportunity — not because the list was long enough.
             </p>
           </div>
         </div>
       </section>
 
-      {/* CAPITAL FIT TEASER */}
-      <section className="bg-[#EFEBE3]">
+      {/* CAPITAL FIT TEASER - INTERACTIVE */}
+      <section className="bg-white">
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
           <div className="grid lg:grid-cols-[1fr_1.15fr] gap-12 lg:gap-20 items-center">
             <div>
@@ -670,36 +722,37 @@ function Home({ go }) {
                 title="Answer six questions. See where your opportunity fits."
                 sub="The platform progressively understands what you are raising, and shows you the categories of private capital your opportunity may be suited to — before you submit anything."
               />
-              <div className="mt-9 flex flex-wrap gap-3">
+              <div className="mt-10 flex flex-wrap gap-3">
                 <Btn size="lg" onClick={() => go('fit')}>Start the pathway <Arrow /></Btn>
                 <Btn size="lg" variant="ghost" onClick={() => go('businesses')}>Skip to submission</Btn>
               </div>
             </div>
-            <div className="bg-[#F7F5F0] p-8 lg:p-10 border border-[#0C1014]/10">
-              <Micro className="block mb-7">Preview</Micro>
-              <div className="space-y-6">
-                {[
-                  ['What type of capital are you seeking?', ['Equity', 'Growth capital', 'Strategic capital', 'Acquisition capital']],
-                  ['How much capital are you seeking?', ['Under $1m', '$1m – $5m', '$5m – $10m', '$10m – $25m', '$25m+']],
-                  ['Where is the opportunity?', ['Africa', 'Africa expansion', 'African acquisition', 'Other']],
-                ].map(([q, opts], qi) => (
-                  <div key={qi} className={qi > 0 ? 'pt-6 border-t border-[#0C1014]/8' : ''}>
-                    <p className="text-[13px] text-[#0C1014]/70 mb-3.5">{q}</p>
+            <div className="bg-[#071224] p-8 lg:p-10 rounded-sm border border-[#F5B722]/20 glow">
+              <Micro light className="block mb-8">Interactive Preview</Micro>
+              <div className="space-y-8">
+                {previewData.map((item, qi) => (
+                  <div key={qi} className={qi > 0 ? 'pt-8 border-t border-white/10' : ''}>
+                    <p className="text-[14px] text-white/80 mb-4 font-medium">{item.q}</p>
                     <div className="flex flex-wrap gap-2">
-                      {opts.map((o, i) => (
-                        <span key={o} className={`text-[11.5px] px-3 py-1.5 border ${
-                          (qi === 0 && i === 1) || (qi === 1 && i === 2) || (qi === 2 && i === 0)
-                            ? 'border-[#B0863C] bg-[#B0863C]/10 text-[#0C1014]'
-                            : 'border-[#0C1014]/12 text-[#0C1014]/45'
-                        }`}>{o}</span>
+                      {item.opts.map((o, i) => (
+                        <button key={o} onClick={() => {}} 
+                          className={`text-[12px] px-4 py-2.5 rounded-sm border transition-all duration-200 ${
+                            i === item.active
+                              ? 'border-[#F5B722] bg-[#F5B722] text-[#071224] font-medium shadow-[0_0_15px_rgba(245,183,34,0.3)]'
+                              : 'border-white/15 text-white/50 hover:border-[#F5B722]/50 hover:text-white'
+                          }`}>{o}</button>
                       ))}
                     </div>
                   </div>
                 ))}
               </div>
-              <div className="mt-8 pt-6 border-t border-[#0C1014]/10">
-                <p className="text-[12.5px] text-[#0C1014]/50 leading-relaxed">
-                  Based on the information you provide, your opportunity may be suited to <span className="text-[#0C1014] font-medium">3 categories</span> of private capital.
+              <div className="mt-10 pt-8 border-t border-white/10">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="w-2 h-2 rounded-full bg-[#F5B722] pulse-soft"></span>
+                  <span className="text-[11px] tracking-[0.14em] uppercase text-[#F5B722] font-medium">Live Match Preview</span>
+                </div>
+                <p className="text-[14px] text-white/60 leading-relaxed">
+                  Based on the information you provide, your opportunity may be suited to <span className="text-[#F5B722] font-semibold">3 categories</span> of private capital.
                 </p>
               </div>
             </div>
@@ -708,41 +761,49 @@ function Home({ go }) {
       </section>
 
       {/* TWO PATHS */}
-      <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
-        <div className="grid lg:grid-cols-2 gap-px bg-[#0C1014]/12">
-          <div className="bg-[#F7F5F0] p-8 lg:p-14">
-            <Micro className="block mb-6">For businesses</Micro>
-            <h3 className="serif text-[clamp(1.6rem,3vw,2.2rem)] leading-tight text-[#0C1014] mb-5">
-              Access private capital.
-            </h3>
-            <p className="text-[14.5px] leading-relaxed text-[#0C1014]/55 mb-8 max-w-md">
-              Submit a structured opportunity. It is reviewed against our private-capital network and investor mandates — not sent to a list.
-            </p>
-            <Btn onClick={() => go('businesses')}>Start a submission <Arrow /></Btn>
-          </div>
-          <div className="bg-[#F7F5F0] p-8 lg:p-14">
-            <Micro className="block mb-6">For investors</Micro>
-            <h3 className="serif text-[clamp(1.6rem,3vw,2.2rem)] leading-tight text-[#0C1014] mb-5">
-              Access investment opportunities.
-            </h3>
-            <p className="text-[14.5px] leading-relaxed text-[#0C1014]/55 mb-8 max-w-md">
-              Define your mandate once. We use your criteria — geography, sector, stage, ticket size — to identify relevant opportunities.
-            </p>
-            <Btn onClick={() => go('investors')}>Define your mandate <Arrow /></Btn>
+      <section className="bg-[#F0F4F8]">
+        <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
+          <div className="grid lg:grid-cols-2 gap-8">
+            <div className="bg-white p-8 lg:p-14 rounded-sm border border-[#071224]/5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+              <div className="w-12 h-12 rounded-full bg-[#F5B722]/10 flex items-center justify-center mb-8 group-hover:bg-[#F5B722]/20 transition-colors">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5B722" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              </div>
+              <Micro className="block mb-4">For businesses</Micro>
+              <h3 className="serif text-[clamp(1.8rem,3vw,2.4rem)] leading-tight text-[#071224] mb-5">
+                Access private capital.
+              </h3>
+              <p className="text-[15px] leading-relaxed text-[#071224]/55 mb-8 max-w-md">
+                Submit a structured opportunity. It is reviewed against our private-capital network and investor mandates — not sent to a list.
+              </p>
+              <Btn onClick={() => go('businesses')}>Start a submission <Arrow /></Btn>
+            </div>
+            <div className="bg-white p-8 lg:p-14 rounded-sm border border-[#071224]/5 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
+              <div className="w-12 h-12 rounded-full bg-[#F5B722]/10 flex items-center justify-center mb-8 group-hover:bg-[#F5B722]/20 transition-colors">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#F5B722" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+              </div>
+              <Micro className="block mb-4">For investors</Micro>
+              <h3 className="serif text-[clamp(1.8rem,3vw,2.4rem)] leading-tight text-[#071224] mb-5">
+                Access investment opportunities.
+              </h3>
+              <p className="text-[15px] leading-relaxed text-[#071224]/55 mb-8 max-w-md">
+                Define your mandate once. We use your criteria — geography, sector, stage, ticket size — to identify relevant opportunities.
+              </p>
+              <Btn onClick={() => go('investors')}>Define your mandate <Arrow /></Btn>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CLOSING */}
-      <section className="bg-[#0C1014]">
-        <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-20 lg:py-28">
+      <section className="bg-[#071224]">
+        <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-20 lg:py-32">
           <div className="max-w-3xl">
-            <h2 className="serif text-[clamp(2rem,5vw,3.4rem)] leading-[1.08] text-[#F7F5F0]">
+            <h2 className="serif text-[clamp(2.2rem,5.5vw,3.8rem)] leading-[1.08] text-white">
               Start where you are.<br />
-              <span className="italic text-[#D2A85F]">We'll take it from there.</span>
+              <span className="italic text-[#F5B722]">We'll take it from there.</span>
             </h2>
-            <div className="mt-10 flex flex-wrap gap-3">
-              <Btn size="lg" variant="brass" onClick={() => go('fit')}>Find your capital pathway <Arrow /></Btn>
+            <div className="mt-12 flex flex-wrap gap-4">
+              <Btn size="lg" variant="primary" onClick={() => go('fit')}>Find your capital pathway <Arrow /></Btn>
               <Btn size="lg" variant="ghostLight" onClick={() => go('opportunities')}>View the network</Btn>
             </div>
           </div>
@@ -768,6 +829,7 @@ function CapitalFit({ go, onComplete }) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [done, setDone] = useState(false);
+  const [animating, setAnimating] = useState(false);
 
   const total = FIT_QUESTIONS.length;
   const current = FIT_QUESTIONS[step];
@@ -777,8 +839,13 @@ function CapitalFit({ go, onComplete }) {
   const set = (v) => setAnswers({ ...answers, [current.key]: v });
 
   const next = () => {
-    if (step < total - 1) setStep(step + 1);
-    else setDone(true);
+    if (!canAdvance) return;
+    setAnimating(true);
+    setTimeout(() => {
+      setAnimating(false);
+      if (step < total - 1) setStep(step + 1);
+      else setDone(true);
+    }, 200);
   };
   const back = () => { if (step > 0) setStep(step - 1); };
 
@@ -788,48 +855,47 @@ function CapitalFit({ go, onComplete }) {
 
   if (done) {
     return (
-      <div className="fadein">
-        <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-20">
+      <div className="fadein bg-[#F0F4F8]">
+        <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-24">
           <div className="grid lg:grid-cols-[1.35fr_1fr] gap-12 lg:gap-16">
             <div>
-              <Micro className="block mb-7">Capital Pathway — Result</Micro>
-              <h1 className="serif text-[clamp(1.9rem,4.5vw,3.1rem)] leading-[1.1] text-[#0C1014] mb-5">
+              <Micro className="block mb-8">Capital Pathway — Result</Micro>
+              <h1 className="serif text-[clamp(2rem,5vw,3.4rem)] leading-[1.1] text-[#071224] mb-6">
                 Your opportunity may be suited to{' '}
-                <span className="italic text-[#B0863C]">{matches.length} {matches.length === 1 ? 'category' : 'categories'}</span>{' '}
+                <span className="italic text-[#F5B722]">{matches.length} {matches.length === 1 ? 'category' : 'categories'}</span>{' '}
                 of private capital.
               </h1>
-              <p className="text-[15px] leading-relaxed text-[#0C1014]/55 max-w-2xl mb-12">
+              <p className="text-[15.5px] leading-relaxed text-[#071224]/55 max-w-2xl mb-14">
                 This is an indicative read based on what you have told us — not a commitment or an offer. A submission is reviewed against live investor mandates before anything is shared.
               </p>
 
-              <div className="space-y-px bg-[#0C1014]/10">
+              <div className="space-y-4">
                 {matches.map((m, i) => (
-                  <div key={m.name} className="bg-[#F7F5F0] p-6 lg:p-7">
-                    <div className="flex items-start justify-between gap-6 mb-3">
+                  <div key={m.name} className="bg-white p-6 lg:p-8 rounded-sm border border-[#071224]/5 hover:shadow-lg transition-shadow slide-up" style={{ animationDelay: `${i * 0.1}s` }}>
+                    <div className="flex items-start justify-between gap-6 mb-4">
                       <div className="flex items-baseline gap-4">
-                        <span className="serif text-[13px] text-[#B0863C]">{String(i + 1).padStart(2, '0')}</span>
-                        <h3 className="serif text-[22px] lg:text-[25px] text-[#0C1014] leading-tight">{m.name}</h3>
+                        <span className="serif text-[14px] text-[#F5B722]">{String(i + 1).padStart(2, '0')}</span>
+                        <h3 className="serif text-[24px] lg:text-[28px] text-[#071224] leading-tight">{m.name}</h3>
                       </div>
-                      <span className="hidden sm:block text-[11.5px] text-[#0C1014]/40 whitespace-nowrap pt-1.5">{m.ticket}</span>
+                      <span className="hidden sm:block text-[12px] font-medium text-[#F5B722] bg-[#F5B722]/10 px-3 py-1 rounded-full whitespace-nowrap">{m.ticket}</span>
                     </div>
-                    <p className="text-[13.5px] leading-relaxed text-[#0C1014]/55 mb-4 pl-0 lg:pl-8">{m.blurb}</p>
-                    <div className="flex flex-wrap gap-2 lg:pl-8">
+                    <p className="text-[14px] leading-relaxed text-[#071224]/55 mb-5 pl-0 lg:pl-10">{m.blurb}</p>
+                    <div className="flex flex-wrap gap-2 lg:pl-10">
                       {m.reasons.map(r => (
-                        <span key={r} className="text-[10.5px] tracking-[0.08em] uppercase px-2.5 py-1 bg-[#B0863C]/10 text-[#8A6828] border border-[#B0863C]/20">
+                        <span key={r} className="text-[10.5px] tracking-[0.08em] uppercase px-3 py-1.5 bg-[#F5B722]/10 text-[#B8860B] border border-[#F5B722]/30 rounded-sm font-medium">
                           {r}
                         </span>
                       ))}
-                      <span className="sm:hidden text-[11px] text-[#0C1014]/40 px-2.5 py-1 border border-[#0C1014]/10">{m.ticket}</span>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-12 flex flex-wrap gap-3">
+              <div className="mt-14 flex flex-wrap gap-4">
                 <Btn size="lg" onClick={() => onComplete(answers)}>Continue to submission <Arrow /></Btn>
                 <Btn size="lg" variant="ghost" onClick={() => { setDone(false); setStep(0); }}>Change my answers</Btn>
               </div>
-              <p className="mt-6 text-[12px] text-[#0C1014]/40">
+              <p className="mt-6 text-[12.5px] text-[#071224]/40">
                 Your answers carry over into the submission form. Nothing is shared with any investor until you submit.
               </p>
             </div>
@@ -850,28 +916,28 @@ function CapitalFit({ go, onComplete }) {
   }
 
   return (
-    <div className="fadein">
-      <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-20">
+    <div className="fadein bg-[#F0F4F8] min-h-[80vh] flex items-center">
+      <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-20 w-full">
         <div className="grid lg:grid-cols-[1.35fr_1fr] gap-12 lg:gap-16">
           <div>
-            <Micro className="block mb-7">Find Your Capital Pathway</Micro>
+            <Micro className="block mb-8">Find Your Capital Pathway</Micro>
 
-            {/* Progress */}
-            <div className="flex items-center gap-4 mb-9">
-              <div className="flex-1 h-px bg-[#0C1014]/12 relative">
-                <div className="absolute inset-y-0 left-0 bg-[#B0863C] transition-all duration-500"
+            {/* Animated Progress */}
+            <div className="flex items-center gap-4 mb-10">
+              <div className="flex-1 h-1 bg-[#071224]/10 rounded-full overflow-hidden">
+                <div className="h-full bg-[#F5B722] rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${((step + 1) / total) * 100}%` }} />
               </div>
-              <span className="text-[11.5px] text-[#0C1014]/45 tabular-nums whitespace-nowrap">
+              <span className="text-[12px] font-medium text-[#071224]/45 tabular-nums whitespace-nowrap bg-white px-3 py-1 rounded-full border border-[#071224]/5">
                 {String(step + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
               </span>
             </div>
 
-            <div key={step} className="fadein-s">
-              <h1 className="serif text-[clamp(1.6rem,3.6vw,2.5rem)] leading-[1.15] text-[#0C1014] mb-8">
+            <div key={step} className={`fadein-s ${animating ? 'opacity-0 translate-y-4' : ''} transition-all duration-200`}>
+              <h1 className="serif text-[clamp(1.8rem,4vw,2.8rem)] leading-[1.15] text-[#071224] mb-8">
                 {current.q}
               </h1>
-              {current.multi && <p className="text-[12.5px] text-[#0C1014]/45 -mt-5 mb-6">Select all that apply</p>}
+              {current.multi && <p className="text-[13px] text-[#071224]/45 -mt-5 mb-7 font-medium">Select all that apply</p>}
               <ChipGroup
                 options={current.options}
                 value={answers[current.key]}
@@ -881,7 +947,7 @@ function CapitalFit({ go, onComplete }) {
               />
             </div>
 
-            <div className="mt-10 flex items-center gap-4">
+            <div className="mt-12 flex items-center gap-4">
               {step > 0 && <Btn variant="ghost" onClick={back}>Back</Btn>}
               <Btn onClick={next} disabled={!canAdvance} size="lg">
                 {step === total - 1 ? 'See your pathway' : 'Continue'} <Arrow />
@@ -889,17 +955,17 @@ function CapitalFit({ go, onComplete }) {
             </div>
           </div>
 
-          <aside className="space-y-6 lg:pt-16">
-            <div className="border border-[#0C1014]/12 p-6 lg:p-7">
+          <aside className="space-y-6 lg:pt-12">
+            <div className="bg-white border border-[#071224]/8 p-6 lg:p-8 rounded-sm">
               <Micro className="block mb-6">Your answers so far</Micro>
               {Object.keys(answers).length === 0 ? (
-                <p className="text-[13px] text-[#0C1014]/35">Nothing yet. Your selections will appear here as you go.</p>
+                <p className="text-[13px] text-[#071224]/35 italic">Nothing yet. Your selections will appear here as you go.</p>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {FIT_QUESTIONS.filter(q => answers[q.key]).map(q => (
-                    <div key={q.key}>
-                      <p className="text-[10.5px] tracking-[0.14em] uppercase text-[#0C1014]/35 mb-1.5">{q.key === 'capitalType' ? 'Capital type' : q.key}</p>
-                      <p className="text-[13px] text-[#0C1014]/75 leading-snug">
+                    <div key={q.key} className="border-l-2 border-[#F5B722] pl-4">
+                      <p className="text-[10.5px] tracking-[0.14em] uppercase text-[#071224]/35 mb-1.5 font-medium">{q.key === 'capitalType' ? 'Capital type' : q.key.replace(/([A-Z])/g, ' $1').trim()}</p>
+                      <p className="text-[13.5px] text-[#071224]/80 leading-snug">
                         {Array.isArray(answers[q.key]) ? answers[q.key].join(', ') : answers[q.key]}
                       </p>
                     </div>
@@ -943,25 +1009,25 @@ function BusinessAccess({ go, prefill }) {
 
   if (submitted) {
     return (
-      <div className="fadein">
+      <div className="fadein bg-[#F0F4F8]">
         <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
           <div className="max-w-3xl">
-            <div className="w-12 h-12 border border-[#B0863C] flex items-center justify-center mb-8">
-              <svg width="18" height="14" viewBox="0 0 18 14" fill="none"><path d="M1 7L6.5 12.5L17 1.5" stroke="#B0863C" strokeWidth="1.5"/></svg>
+            <div className="w-14 h-14 rounded-full bg-[#F5B722] flex items-center justify-center mb-8 shadow-[0_0_30px_rgba(245,183,34,0.3)]">
+              <svg width="22" height="18" viewBox="0 0 22 18" fill="none"><path d="M1 9L8 16L21 2" stroke="#071224" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
             <Micro className="block mb-6">Submission received — {ref}</Micro>
-            <h1 className="serif text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.1] text-[#0C1014] mb-6">
+            <h1 className="serif text-[clamp(2rem,5vw,3.2rem)] leading-[1.1] text-[#071224] mb-6">
               Your opportunity is now in review.
             </h1>
-            <p className="text-[15.5px] leading-relaxed text-[#0C1014]/55 max-w-2xl mb-12">
+            <p className="text-[16px] leading-relaxed text-[#071224]/55 max-w-2xl mb-14">
               Your submission will be reviewed against our private-capital network and investor mandates. We will come back to you with a clear answer — including if there is no fit.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-[1.35fr_1fr] gap-12 lg:gap-16">
             <div>
-              <Micro className="block mb-7">What happens next</Micro>
-              <div className="space-y-px bg-[#0C1014]/10">
+              <Micro className="block mb-8">What happens next</Micro>
+              <div className="space-y-4">
                 {[
                   { t: 'Review', d: 'We assess the opportunity against mandate criteria: sector, stage, geography, ticket size and structure.', time: 'Within 3 business days' },
                   { t: 'Fit assessment', d: 'We identify which investors in the network have a live mandate that matches. If none do, we tell you.', time: 'Within 5 business days' },
@@ -969,28 +1035,28 @@ function BusinessAccess({ go, prefill }) {
                   { t: 'Introduction', d: 'Where there is fit, we make a curated introduction with context already established on both sides.', time: 'On confirmation' },
                   { t: 'Engagement', d: 'Diligence, structuring and negotiation proceed directly between the parties.', time: 'Party-led' },
                 ].map((s, i) => (
-                  <div key={i} className="bg-[#F7F5F0] p-6 flex gap-5 items-start">
-                    <span className="serif text-[13px] text-[#B0863C] w-6 shrink-0 pt-0.5">{String(i + 1).padStart(2, '0')}</span>
+                  <div key={i} className="bg-white p-6 rounded-sm flex gap-5 items-start border border-[#071224]/5 hover:shadow-md transition-shadow">
+                    <span className="serif text-[15px] text-[#F5B722] w-7 shrink-0 pt-0.5 font-bold">{String(i + 1).padStart(2, '0')}</span>
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-baseline justify-between gap-2 mb-1.5">
-                        <h3 className="text-[14.5px] font-medium text-[#0C1014]">{s.t}</h3>
-                        <span className="text-[11px] text-[#0C1014]/40">{s.time}</span>
+                        <h3 className="text-[15px] font-semibold text-[#071224]">{s.t}</h3>
+                        <span className="text-[11px] font-medium text-[#F5B722] bg-[#F5B722]/10 px-2.5 py-0.5 rounded-full">{s.time}</span>
                       </div>
-                      <p className="text-[13px] leading-relaxed text-[#0C1014]/50">{s.d}</p>
+                      <p className="text-[13.5px] leading-relaxed text-[#071224]/50">{s.d}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-10 border border-[#0C1014]/12 p-6 lg:p-7">
-                <Micro className="block mb-4">Your reference</Micro>
-                <p className="serif text-[26px] text-[#0C1014] mb-3">{ref}</p>
-                <p className="text-[12.5px] text-[#0C1014]/45 leading-relaxed">
+              <div className="mt-10 bg-[#071224] p-6 lg:p-8 rounded-sm">
+                <Micro light className="block mb-4">Your reference</Micro>
+                <p className="serif text-[32px] text-[#F5B722] mb-3">{ref}</p>
+                <p className="text-[13px] text-white/50 leading-relaxed">
                   Quote this reference in any correspondence. A confirmation has been sent to {f.contactEmail || 'your email'}.
                 </p>
               </div>
 
-              <div className="mt-10 flex flex-wrap gap-3">
+              <div className="mt-10 flex flex-wrap gap-4">
                 <Btn onClick={() => go('investors')}>I'm also an investor</Btn>
                 <Btn variant="ghost" onClick={() => go('insights')}>Read market insights</Btn>
               </div>
@@ -998,9 +1064,9 @@ function BusinessAccess({ go, prefill }) {
 
             <aside className="space-y-6">
               <TermsPanel />
-              <div className="bg-[#EFEBE3] p-6 lg:p-7">
+              <div className="bg-white p-6 lg:p-8 rounded-sm border border-[#071224]/5">
                 <Micro className="block mb-4">Confidentiality</Micro>
-                <p className="text-[13px] leading-relaxed text-[#0C1014]/55">
+                <p className="text-[13.5px] leading-relaxed text-[#071224]/55">
                   Your submission is not distributed. It is reviewed internally and shared only with specific investors whose mandate matches — and only with your agreement.
                 </p>
               </div>
@@ -1014,32 +1080,36 @@ function BusinessAccess({ go, prefill }) {
   const steps = ['What you are raising', 'What you are looking for', 'Submit opportunity'];
 
   return (
-    <div className="fadein">
+    <div className="fadein bg-[#F0F4F8]">
       <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-20">
         <div className="grid lg:grid-cols-[1.35fr_1fr] gap-12 lg:gap-16">
           <div>
-            <Micro className="block mb-7">For Businesses — Access Private Capital</Micro>
-            <h1 className="serif text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.1] text-[#0C1014] mb-5">
+            <Micro className="block mb-8">For Businesses — Access Private Capital</Micro>
+            <h1 className="serif text-[clamp(2rem,5vw,3.2rem)] leading-[1.1] text-[#071224] mb-5">
               Access private capital.
             </h1>
-            <p className="text-[15px] leading-relaxed text-[#0C1014]/55 max-w-2xl mb-11">
+            <p className="text-[16px] leading-relaxed text-[#071224]/55 max-w-2xl mb-12">
               Tell us about your business, the opportunity and the capital you are seeking. We'll assess it against our investor network and mandate.
             </p>
 
             {/* Step nav */}
-            <div className="flex flex-wrap gap-x-8 gap-y-3 mb-10 pb-6 border-b border-[#0C1014]/12">
+            <div className="flex flex-wrap gap-x-8 gap-y-4 mb-12 pb-8 border-b border-[#071224]/10">
               {steps.map((s, i) => (
                 <button key={s} onClick={() => i < step && setStep(i)}
-                  className={`flex items-center gap-3 text-[12.5px] transition-colors ${
-                    i === step ? 'text-[#0C1014]' : i < step ? 'text-[#0C1014]/55 hover:text-[#0C1014]' : 'text-[#0C1014]/25 cursor-default'
+                  className={`flex items-center gap-3 text-[13px] font-medium transition-all duration-200 ${
+                    i === step ? 'text-[#071224]' : i < step ? 'text-[#F5B722] hover:text-[#B8860B]' : 'text-[#071224]/25 cursor-default'
                   }`}>
-                  <span className={`serif text-[12px] ${i === step ? 'text-[#B0863C]' : ''}`}>{String(i + 1).padStart(2, '0')}</span>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${
+                    i === step ? 'bg-[#F5B722] text-[#071224]' : i < step ? 'bg-[#F5B722]/20 text-[#F5B722]' : 'bg-[#071224]/10 text-[#071224]/40'
+                  }`}>
+                    {i < step ? '✓' : String(i + 1)}
+                  </span>
                   {s}
                 </button>
               ))}
             </div>
 
-            <div key={step} className="fadein-s space-y-7">
+            <div key={step} className="fadein-s space-y-8">
               {step === 0 && (
                 <>
                   <Field label="Company / group name" required>
@@ -1081,11 +1151,11 @@ function BusinessAccess({ go, prefill }) {
               {step === 1 && (
                 <>
                   <div>
-                    <h2 className="text-[15px] font-medium text-[#0C1014] mb-2">What are you looking for?</h2>
-                    <p className="text-[13px] text-[#0C1014]/45 mb-6">Select all that apply.</p>
+                    <h2 className="text-[16px] font-semibold text-[#071224] mb-2">What are you looking for?</h2>
+                    <p className="text-[13.5px] text-[#071224]/45 mb-7">Select all that apply.</p>
                     <ChipGroup options={PURPOSES} value={f.purposes} onChange={v => set('purposes', v)} multi columns={2} />
                   </div>
-                  <div className="pt-7 border-t border-[#0C1014]/10">
+                  <div className="pt-8 border-t border-[#071224]/10">
                     <Field label="What does success look like for this raise?" hint="Optional">
                       <TextArea value={f.description} onChange={v => set('description', v)} rows={3}
                         placeholder="e.g. Close a $8m growth round to fund two new markets over 18 months." />
@@ -1096,8 +1166,8 @@ function BusinessAccess({ go, prefill }) {
 
               {step === 2 && (
                 <>
-                  <div className="bg-[#EFEBE3] p-6 lg:p-7">
-                    <Micro className="block mb-5">Review your submission</Micro>
+                  <div className="bg-[#071224] p-6 lg:p-8 rounded-sm">
+                    <Micro light className="block mb-6">Review your submission</Micro>
                     <div className="space-y-0">
                       {[
                         ['Company', f.company], ['Country', f.country], ['Sector', f.sector],
@@ -1105,9 +1175,9 @@ function BusinessAccess({ go, prefill }) {
                         ['Existing investors', f.existingInvestors], ['Timeline', f.timeline],
                         ['Seeking', f.purposes.join(', ')]
                       ].filter(([, v]) => v).map(([k, v], i) => (
-                        <div key={k} className={`flex justify-between gap-6 py-3 ${i > 0 ? 'border-t border-[#0C1014]/8' : ''}`}>
-                          <span className="text-[12.5px] text-[#0C1014]/45 shrink-0">{k}</span>
-                          <span className="text-[12.5px] text-[#0C1014] text-right">{v}</span>
+                        <div key={k} className={`flex justify-between gap-6 py-4 ${i > 0 ? 'border-t border-white/10' : ''}`}>
+                          <span className="text-[13px] text-white/50 shrink-0">{k}</span>
+                          <span className="text-[13px] text-white text-right font-medium">{v}</span>
                         </div>
                       ))}
                     </div>
@@ -1126,13 +1196,13 @@ function BusinessAccess({ go, prefill }) {
                   </Field>
 
                   <button type="button" onClick={() => set('consent', !f.consent)}
-                    className="flex items-start gap-3.5 text-left w-full group">
-                    <span className={`mt-0.5 w-4 h-4 shrink-0 border flex items-center justify-center transition-colors ${
-                      f.consent ? 'border-[#B0863C] bg-[#B0863C]' : 'border-[#0C1014]/25 group-hover:border-[#0C1014]/50'
+                    className="flex items-start gap-4 text-left w-full group p-4 rounded-sm border border-[#071224]/10 hover:border-[#F5B722]/50 transition-colors">
+                    <span className={`mt-0.5 w-5 h-5 shrink-0 rounded-sm border-2 flex items-center justify-center transition-all duration-200 ${
+                      f.consent ? 'border-[#F5B722] bg-[#F5B722]' : 'border-[#071224]/25 group-hover:border-[#F5B722]'
                     }`}>
-                      {f.consent && <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="#0C1014" strokeWidth="1.6"/></svg>}
+                      {f.consent && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#071224" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </span>
-                    <span className="text-[12.5px] leading-relaxed text-[#0C1014]/60">
+                    <span className="text-[13px] leading-relaxed text-[#071224]/65">
                       I confirm the information provided is accurate and I consent to ML Gateway reviewing this opportunity against its private-capital network. I understand nothing is shared with any investor without my agreement.
                     </span>
                   </button>
@@ -1140,7 +1210,7 @@ function BusinessAccess({ go, prefill }) {
               )}
             </div>
 
-            <div className="mt-10 flex items-center gap-4">
+            <div className="mt-12 flex items-center gap-4">
               {step > 0 && <Btn variant="ghost" onClick={() => setStep(step - 1)}>Back</Btn>}
               {step < 2 ? (
                 <Btn size="lg" onClick={() => setStep(step + 1)} disabled={step === 0 ? !step1Ok : !step2Ok}>
@@ -1154,7 +1224,7 @@ function BusinessAccess({ go, prefill }) {
             </div>
           </div>
 
-          <aside className="space-y-6 lg:pt-16">
+          <aside className="space-y-6 lg:pt-12">
             <WhatHappensNext items={[
               { t: 'Review against mandates', d: 'Your opportunity is assessed against live investor criteria — not added to a list.' },
               { t: 'Clear outcome', d: 'You are told whether there is a credible fit, within seven business days.' },
@@ -1196,25 +1266,25 @@ function InvestorAccess({ go }) {
 
   if (submitted) {
     return (
-      <div className="fadein">
+      <div className="fadein bg-[#F0F4F8]">
         <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
           <div className="max-w-3xl">
-            <div className="w-12 h-12 border border-[#B0863C] flex items-center justify-center mb-8">
-              <svg width="18" height="14" viewBox="0 0 18 14" fill="none"><path d="M1 7L6.5 12.5L17 1.5" stroke="#B0863C" strokeWidth="1.5"/></svg>
+            <div className="w-14 h-14 rounded-full bg-[#F5B722] flex items-center justify-center mb-8 shadow-[0_0_30px_rgba(245,183,34,0.3)]">
+              <svg width="22" height="18" viewBox="0 0 22 18" fill="none"><path d="M1 9L8 16L21 2" stroke="#071224" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
             <Micro className="block mb-6">Mandate registered</Micro>
-            <h1 className="serif text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.1] text-[#0C1014] mb-6">
+            <h1 className="serif text-[clamp(2rem,5vw,3.2rem)] leading-[1.1] text-[#071224] mb-6">
               Your mandate is on file.
             </h1>
-            <p className="text-[15.5px] leading-relaxed text-[#0C1014]/55 max-w-2xl mb-12">
+            <p className="text-[16px] leading-relaxed text-[#071224]/55 max-w-2xl mb-14">
               We will use your criteria to identify relevant opportunities within the ML Gateway network. You will only be contacted when there is a genuine match.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-[1.35fr_1fr] gap-12 lg:gap-16">
             <div>
-              <Micro className="block mb-7">Your mandate summary</Micro>
-              <div className="space-y-px bg-[#0C1014]/10 mb-10">
+              <Micro className="block mb-8">Your mandate summary</Micro>
+              <div className="bg-white rounded-sm border border-[#071224]/5 overflow-hidden mb-10">
                 {[
                   ['Geographies', f.geos.join(', ')],
                   ['Sectors', f.sectors.join(', ')],
@@ -1225,9 +1295,9 @@ function InvestorAccess({ go }) {
                   ['Return expectation', f.returnExp || 'No preference'],
                   ['Horizon', f.horizon || 'No preference'],
                 ].map(([k, v], i) => (
-                  <div key={k} className="bg-[#F7F5F0] px-6 py-4 flex justify-between gap-6">
-                    <span className="text-[12.5px] text-[#0C1014]/45 shrink-0">{k}</span>
-                    <span className="text-[12.5px] text-[#0C1014] text-right">{v}</span>
+                  <div key={k} className={`px-6 py-4 flex justify-between gap-6 ${i > 0 ? 'border-t border-[#071224]/5' : ''}`}>
+                    <span className="text-[13px] text-[#071224]/45 shrink-0 font-medium">{k}</span>
+                    <span className="text-[13px] text-[#071224] text-right font-medium">{v}</span>
                   </div>
                 ))}
               </div>
@@ -1241,25 +1311,25 @@ function InvestorAccess({ go }) {
                   { t: 'Direct engagement', d: 'Where there is mutual interest, we make the introduction and step back.' },
                 ].map((s, i) => (
                   <div key={i} className="flex gap-4">
-                    <span className="serif text-[13px] text-[#B0863C] w-5 shrink-0 pt-0.5">{String(i + 1).padStart(2, '0')}</span>
+                    <span className="serif text-[14px] text-[#F5B722] w-6 shrink-0 pt-0.5 font-bold">{String(i + 1).padStart(2, '0')}</span>
                     <div>
-                      <p className="text-[13.5px] font-medium text-[#0C1014] mb-1">{s.t}</p>
-                      <p className="text-[12.5px] leading-relaxed text-[#0C1014]/50">{s.d}</p>
+                      <p className="text-[14px] font-semibold text-[#071224] mb-1">{s.t}</p>
+                      <p className="text-[13px] leading-relaxed text-[#071224]/50">{s.d}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-4">
                 <Btn onClick={() => go('opportunities')}>View the opportunity environment <Arrow /></Btn>
                 <Btn variant="ghost" onClick={() => setSubmitted(false)}>Amend my mandate</Btn>
               </div>
             </div>
 
             <aside className="space-y-6">
-              <div className="bg-[#EFEBE3] p-6 lg:p-7">
+              <div className="bg-white p-6 lg:p-8 rounded-sm border border-[#071224]/5">
                 <Micro className="block mb-4">Confidentiality</Micro>
-                <p className="text-[13px] leading-relaxed text-[#0C1014]/55">
+                <p className="text-[13.5px] leading-relaxed text-[#071224]/55">
                   Your mandate is held privately and used only for matching. It is never published, shared or used for mass distribution.
                 </p>
               </div>
@@ -1274,31 +1344,35 @@ function InvestorAccess({ go }) {
   const steps = ['Investment criteria', 'Structure & return', 'Register mandate'];
 
   return (
-    <div className="fadein">
+    <div className="fadein bg-[#F0F4F8]">
       <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-20">
         <div className="grid lg:grid-cols-[1.35fr_1fr] gap-12 lg:gap-16">
           <div>
-            <Micro className="block mb-7">For Investors — Access Investment Opportunities</Micro>
-            <h1 className="serif text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.1] text-[#0C1014] mb-5">
+            <Micro className="block mb-8">For Investors — Access Investment Opportunities</Micro>
+            <h1 className="serif text-[clamp(2rem,5vw,3.2rem)] leading-[1.1] text-[#071224] mb-5">
               Tell us what you invest in.
             </h1>
-            <p className="text-[15px] leading-relaxed text-[#0C1014]/55 max-w-2xl mb-11">
+            <p className="text-[16px] leading-relaxed text-[#071224]/55 max-w-2xl mb-12">
               Define your mandate once. We'll use your investment criteria to identify relevant opportunities within the ML Gateway network.
             </p>
 
-            <div className="flex flex-wrap gap-x-8 gap-y-3 mb-10 pb-6 border-b border-[#0C1014]/12">
+            <div className="flex flex-wrap gap-x-8 gap-y-4 mb-12 pb-8 border-b border-[#071224]/10">
               {steps.map((s, i) => (
                 <button key={s} onClick={() => i < step && setStep(i)}
-                  className={`flex items-center gap-3 text-[12.5px] transition-colors ${
-                    i === step ? 'text-[#0C1014]' : i < step ? 'text-[#0C1014]/55 hover:text-[#0C1014]' : 'text-[#0C1014]/25 cursor-default'
+                  className={`flex items-center gap-3 text-[13px] font-medium transition-all duration-200 ${
+                    i === step ? 'text-[#071224]' : i < step ? 'text-[#F5B722] hover:text-[#B8860B]' : 'text-[#071224]/25 cursor-default'
                   }`}>
-                  <span className={`serif text-[12px] ${i === step ? 'text-[#B0863C]' : ''}`}>{String(i + 1).padStart(2, '0')}</span>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold ${
+                    i === step ? 'bg-[#F5B722] text-[#071224]' : i < step ? 'bg-[#F5B722]/20 text-[#F5B722]' : 'bg-[#071224]/10 text-[#071224]/40'
+                  }`}>
+                    {i < step ? '✓' : String(i + 1)}
+                  </span>
                   {s}
                 </button>
               ))}
             </div>
 
-            <div key={step} className="fadein-s space-y-8">
+            <div key={step} className="fadein-s space-y-9">
               {step === 0 && (
                 <>
                   <div className="grid sm:grid-cols-2 gap-7">
@@ -1328,7 +1402,7 @@ function InvestorAccess({ go }) {
                     <ChipGroup options={STAGES} value={f.stages} onChange={v => set('stages', v)} multi columns={2} />
                   </div>
 
-                  <div className="grid sm:grid-cols-3 gap-5">
+                  <div className="grid sm:grid-cols-3 gap-6">
                     <Field label="Currency" required>
                       <Select value={f.currency} onChange={v => set('currency', v)} options={CURRENCIES} placeholder="USD" />
                     </Field>
@@ -1373,8 +1447,8 @@ function InvestorAccess({ go }) {
 
               {step === 2 && (
                 <>
-                  <div className="bg-[#EFEBE3] p-6 lg:p-7">
-                    <Micro className="block mb-5">Review your mandate</Micro>
+                  <div className="bg-[#071224] p-6 lg:p-8 rounded-sm">
+                    <Micro light className="block mb-6">Review your mandate</Micro>
                     <div className="space-y-0">
                       {[
                         ['Entity', f.entity], ['Type', f.entityType], ['Geographies', f.geos.join(', ')],
@@ -1383,9 +1457,9 @@ function InvestorAccess({ go }) {
                         ['Investment types', f.investTypes.join(', ')],
                         ['Ownership', f.ownership], ['Return', f.returnExp], ['Horizon', f.horizon],
                       ].filter(([, v]) => v).map(([k, v], i) => (
-                        <div key={k} className={`flex justify-between gap-6 py-3 ${i > 0 ? 'border-t border-[#0C1014]/8' : ''}`}>
-                          <span className="text-[12.5px] text-[#0C1014]/45 shrink-0">{k}</span>
-                          <span className="text-[12.5px] text-[#0C1014] text-right">{v}</span>
+                        <div key={k} className={`flex justify-between gap-6 py-4 ${i > 0 ? 'border-t border-white/10' : ''}`}>
+                          <span className="text-[13px] text-white/50 shrink-0">{k}</span>
+                          <span className="text-[13px] text-white text-right font-medium">{v}</span>
                         </div>
                       ))}
                     </div>
@@ -1401,13 +1475,13 @@ function InvestorAccess({ go }) {
                   </div>
 
                   <button type="button" onClick={() => set('consent', !f.consent)}
-                    className="flex items-start gap-3.5 text-left w-full group">
-                    <span className={`mt-0.5 w-4 h-4 shrink-0 border flex items-center justify-center transition-colors ${
-                      f.consent ? 'border-[#B0863C] bg-[#B0863C]' : 'border-[#0C1014]/25 group-hover:border-[#0C1014]/50'
+                    className="flex items-start gap-4 text-left w-full group p-4 rounded-sm border border-[#071224]/10 hover:border-[#F5B722]/50 transition-colors">
+                    <span className={`mt-0.5 w-5 h-5 shrink-0 rounded-sm border-2 flex items-center justify-center transition-all duration-200 ${
+                      f.consent ? 'border-[#F5B722] bg-[#F5B722]' : 'border-[#071224]/25 group-hover:border-[#F5B722]'
                     }`}>
-                      {f.consent && <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="#0C1014" strokeWidth="1.6"/></svg>}
+                      {f.consent && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#071224" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                     </span>
-                    <span className="text-[12.5px] leading-relaxed text-[#0C1014]/60">
+                    <span className="text-[13px] leading-relaxed text-[#071224]/65">
                       I confirm I am an investor or authorised representative, and I consent to ML Gateway holding this mandate for the purpose of matching it with relevant opportunities.
                     </span>
                   </button>
@@ -1415,7 +1489,7 @@ function InvestorAccess({ go }) {
               )}
             </div>
 
-            <div className="mt-10 flex items-center gap-4">
+            <div className="mt-12 flex items-center gap-4">
               {step > 0 && <Btn variant="ghost" onClick={() => setStep(step - 1)}>Back</Btn>}
               {step < 2 ? (
                 <Btn size="lg" onClick={() => setStep(step + 1)} disabled={step === 0 ? !step1Ok : !step2Ok}>
@@ -1429,7 +1503,7 @@ function InvestorAccess({ go }) {
             </div>
           </div>
 
-          <aside className="space-y-6 lg:pt-16">
+          <aside className="space-y-6 lg:pt-12">
             <WhatHappensNext items={[
               { t: 'We match, you decide', d: 'You are shown an opportunity only when your criteria genuinely align.' },
               { t: 'No mass distribution', d: 'Your mandate is never shared and you are never added to a circulation list.' },
@@ -1456,20 +1530,20 @@ function Network({ go }) {
 
   if (submitted) {
     return (
-      <div className="fadein">
+      <div className="fadein bg-[#F0F4F8]">
         <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
           <div className="max-w-2xl">
-            <div className="w-12 h-12 border border-[#B0863C] flex items-center justify-center mb-8">
-              <svg width="18" height="14" viewBox="0 0 18 14" fill="none"><path d="M1 7L6.5 12.5L17 1.5" stroke="#B0863C" strokeWidth="1.5"/></svg>
+            <div className="w-14 h-14 rounded-full bg-[#F5B722] flex items-center justify-center mb-8 shadow-[0_0_30px_rgba(245,183,34,0.3)]">
+              <svg width="22" height="18" viewBox="0 0 22 18" fill="none"><path d="M1 9L8 16L21 2" stroke="#071224" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
             <Micro className="block mb-6">Application received</Micro>
-            <h1 className="serif text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.1] text-[#0C1014] mb-6">
+            <h1 className="serif text-[clamp(2rem,5vw,3.2rem)] leading-[1.1] text-[#071224] mb-6">
               Thank you. We'll be in touch.
             </h1>
-            <p className="text-[15.5px] leading-relaxed text-[#0C1014]/55 mb-10">
+            <p className="text-[16px] leading-relaxed text-[#071224]/55 mb-12">
               Network participation is by invitation and reviewed individually. We'll come back to you with an outcome, and with the first opportunities that align to your mandate.
             </p>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-4">
               <Btn onClick={() => go('investors')}>Register a full mandate <Arrow /></Btn>
               <Btn variant="ghost" onClick={() => go('opportunities')}>View the opportunity environment</Btn>
             </div>
@@ -1480,19 +1554,19 @@ function Network({ go }) {
   }
 
   return (
-    <div className="fadein">
+    <div className="fadein bg-[#F0F4F8]">
       <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-20">
         <div className="grid lg:grid-cols-[1.35fr_1fr] gap-12 lg:gap-16">
           <div>
-            <Micro className="block mb-7">Capital Network</Micro>
-            <h1 className="serif text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.1] text-[#0C1014] mb-5">
+            <Micro className="block mb-8">Capital Network</Micro>
+            <h1 className="serif text-[clamp(2rem,5vw,3.2rem)] leading-[1.1] text-[#071224] mb-5">
               Join the capital network.
             </h1>
-            <p className="text-[15px] leading-relaxed text-[#0C1014]/55 max-w-2xl mb-11">
+            <p className="text-[16px] leading-relaxed text-[#071224]/55 max-w-2xl mb-12">
               If you provide private capital — as a fund, family office, corporate, DFI or private investor — join the network and receive opportunities aligned to your mandate.
             </p>
 
-            <div className="space-y-7">
+            <div className="space-y-8">
               <div className="grid sm:grid-cols-2 gap-7">
                 <Field label="Investor / entity name" required>
                   <TextInput value={f.entity} onChange={v => set('entity', v)} placeholder="Fund, family office, corporate" />
@@ -1533,13 +1607,14 @@ function Network({ go }) {
                 </Field>
               </div>
 
-              <button type="button" onClick={() => set('consent', !f.consent)} className="flex items-start gap-3.5 text-left w-full group">
-                <span className={`mt-0.5 w-4 h-4 shrink-0 border flex items-center justify-center transition-colors ${
-                  f.consent ? 'border-[#B0863C] bg-[#B0863C]' : 'border-[#0C1014]/25 group-hover:border-[#0C1014]/50'
+              <button type="button" onClick={() => set('consent', !f.consent)}
+                className="flex items-start gap-4 text-left w-full group p-4 rounded-sm border border-[#071224]/10 hover:border-[#F5B722]/50 transition-colors">
+                <span className={`mt-0.5 w-5 h-5 shrink-0 rounded-sm border-2 flex items-center justify-center transition-all duration-200 ${
+                  f.consent ? 'border-[#F5B722] bg-[#F5B722]' : 'border-[#071224]/25 group-hover:border-[#F5B722]'
                 }`}>
-                  {f.consent && <svg width="9" height="7" viewBox="0 0 9 7" fill="none"><path d="M1 3.5L3.5 6L8 1" stroke="#0C1014" strokeWidth="1.6"/></svg>}
+                  {f.consent && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#071224" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                 </span>
-                <span className="text-[12.5px] leading-relaxed text-[#0C1014]/60">
+                <span className="text-[13px] leading-relaxed text-[#071224]/65">
                   I confirm I am an investor or authorised representative and consent to ML Gateway holding these details for network matching.
                 </span>
               </button>
@@ -1548,19 +1623,19 @@ function Network({ go }) {
             </div>
           </div>
 
-          <aside className="space-y-6 lg:pt-16">
-            <div className="bg-[#0C1014] text-[#F7F5F0] p-6 lg:p-8">
-              <Micro tone="light" className="block mb-6">Membership</Micro>
-              <div className="space-y-5">
+          <aside className="space-y-6 lg:pt-12">
+            <div className="bg-[#071224] text-white p-6 lg:p-8 rounded-sm">
+              <Micro light className="block mb-7">Membership</Micro>
+              <div className="space-y-6">
                 {[
                   ['Curated only', 'Opportunities arrive because they match your mandate — never as a bulk list.'],
                   ['Confidential', 'Your mandate is held privately and used only for matching.'],
                   ['No obligation', 'You review, and decide whether to proceed to introduction.'],
                   ['No cost to join', 'Network participation is by invitation and carries no fee.'],
                 ].map(([t, d], i) => (
-                  <div key={i}>
-                    <p className="text-[13.5px] font-medium mb-1.5">{t}</p>
-                    <p className="text-[12.5px] leading-relaxed text-white/45">{d}</p>
+                  <div key={i} className="border-l-2 border-[#F5B722]/40 pl-5">
+                    <p className="text-[14px] font-semibold mb-1.5 text-white">{t}</p>
+                    <p className="text-[13px] leading-relaxed text-white/45">{d}</p>
                   </div>
                 ))}
               </div>
@@ -1585,48 +1660,48 @@ function HowItWorks({ go }) {
   ];
 
   return (
-    <div className="fadein">
-      <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-20">
+    <div className="fadein bg-[#F0F4F8]">
+      <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-24">
         <SectionHead
           eyebrow="How it works"
           title="Understand the process before you commit anything."
           sub="This is what happens at each stage, what is required of you, and what it costs. No surprises, and no obligation to proceed at any point."
-          className="mb-16 max-w-3xl"
+          className="mb-20 max-w-3xl"
         />
 
-        <div className="space-y-px bg-[#0C1014]/12 mb-16">
+        <div className="space-y-6 mb-20">
           {steps.map(s => (
-            <div key={s.n} className="bg-[#F7F5F0] p-7 lg:p-11 grid lg:grid-cols-[auto_1fr_200px] gap-6 lg:gap-12 items-start">
-              <span className="serif text-[32px] lg:text-[42px] text-[#B0863C] leading-none">{s.n}</span>
+            <div key={s.n} className="bg-white p-8 lg:p-12 rounded-sm border border-[#071224]/5 grid lg:grid-cols-[auto_1fr_200px] gap-8 lg:gap-12 items-start hover:shadow-lg transition-shadow">
+              <span className="serif text-[36px] lg:text-[48px] text-[#F5B722] leading-none font-bold">{s.n}</span>
               <div>
-                <h3 className="serif text-[26px] lg:text-[32px] text-[#0C1014] mb-3">{s.t}</h3>
-                <p className="text-[14.5px] leading-relaxed text-[#0C1014]/55 max-w-2xl">{s.d}</p>
+                <h3 className="serif text-[28px] lg:text-[36px] text-[#071224] mb-4">{s.t}</h3>
+                <p className="text-[15px] leading-relaxed text-[#071224]/55 max-w-2xl">{s.d}</p>
               </div>
-              <div className="lg:text-right lg:pt-2">
-                <Micro className="block">{s.side}</Micro>
+              <div className="lg:text-right lg:pt-4">
+                <span className="inline-block text-[11px] tracking-[0.14em] uppercase font-semibold text-[#F5B722] bg-[#F5B722]/10 px-3 py-1.5 rounded-full">{s.side}</span>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-16">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
           <div>
             <SectionHead eyebrow="What we don't do" title="What we deliberately avoid." className="mb-8" />
-            <div className="space-y-0">
+            <div className="space-y-0 bg-white rounded-sm border border-[#071224]/5 overflow-hidden">
               {[
                 ['Generic investor lists', 'We do not circulate opportunity summaries to a broad list in the hope that someone responds.'],
                 ['Mass distribution', 'No opportunity is sent to the network at large. Distribution is targeted and named.'],
                 ['Unnecessary introductions', 'If the mandate does not match, we do not make the introduction to seem productive.'],
                 ['Pay-to-submit', 'Submitting an opportunity costs nothing. We are not a listing service.'],
               ].map(([t, d], i) => (
-                <div key={i} className={`py-5 ${i > 0 ? 'border-t border-[#0C1014]/10' : ''}`}>
-                  <p className="text-[14px] font-medium text-[#0C1014] mb-1.5">{t}</p>
-                  <p className="text-[13px] leading-relaxed text-[#0C1014]/50">{d}</p>
+                <div key={i} className={`p-6 lg:p-8 ${i > 0 ? 'border-t border-[#071224]/5' : ''}`}>
+                  <p className="text-[15px] font-semibold text-[#071224] mb-2">{t}</p>
+                  <p className="text-[13.5px] leading-relaxed text-[#071224]/50">{d}</p>
                 </div>
               ))}
             </div>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-8">
             <WhatHappensNext items={[
               { t: 'You are told either way', d: 'A clear yes or a clear no — with reasoning. Not silence.' },
               { t: 'You control disclosure', d: 'Nothing is shared with any investor without your agreement.' },
@@ -1636,16 +1711,16 @@ function HowItWorks({ go }) {
           </div>
         </div>
 
-        <div className="mt-16 bg-[#0C1014] p-8 lg:p-14">
+        <div className="mt-20 bg-[#071224] p-8 lg:p-16 rounded-sm">
           <div className="max-w-2xl">
-            <h2 className="serif text-[clamp(1.7rem,3.6vw,2.5rem)] leading-tight text-[#F7F5F0] mb-6">
+            <h2 className="serif text-[clamp(2rem,4vw,3rem)] leading-tight text-white mb-6">
               Ready to start?
             </h2>
-            <p className="text-[14.5px] leading-relaxed text-white/50 mb-9">
+            <p className="text-[16px] leading-relaxed text-white/50 mb-10">
               Begin with the pathway, or go straight to a submission or mandate.
             </p>
-            <div className="flex flex-wrap gap-3">
-              <Btn variant="brass" size="lg" onClick={() => go('fit')}>Find your capital pathway <Arrow /></Btn>
+            <div className="flex flex-wrap gap-4">
+              <Btn variant="primary" size="lg" onClick={() => go('fit')}>Find your capital pathway <Arrow /></Btn>
               <Btn variant="ghostLight" size="lg" onClick={() => go('businesses')}>Submit an opportunity</Btn>
               <Btn variant="ghostLight" size="lg" onClick={() => go('investors')}>Register a mandate</Btn>
             </div>
@@ -1660,6 +1735,8 @@ function HowItWorks({ go }) {
    OPPORTUNITIES (GATED)
    ============================================================ */
 function Opportunities({ go }) {
+  const [hovered, setHovered] = useState(null);
+
   const sample = [
     { sector: 'Financial services', geo: 'East Africa', stage: 'Profitable & scaling', size: '$5m – $10m', type: 'Growth equity', label: 'Expansion capital for a regional lender' },
     { sector: 'Agriculture & agribusiness', geo: 'Southern Africa', stage: 'Revenue-generating', size: '$1m – $5m', type: 'Growth capital', label: 'Working capital for an export agri-processor' },
@@ -1670,55 +1747,60 @@ function Opportunities({ go }) {
   ];
 
   return (
-    <div className="fadein">
-      <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-20">
+    <div className="fadein bg-[#F0F4F8]">
+      <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-24">
         <SectionHead
           eyebrow="Opportunities"
           title="A curated, access-controlled environment."
           sub="Opportunities in the network are not publicly listed. Detail is released progressively, subject to confidentiality and the mandates of the parties involved."
-          className="mb-14 max-w-3xl"
+          className="mb-16 max-w-3xl"
         />
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-[#0C1014]/12 mb-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
           {sample.map((o, i) => (
-            <div key={i} className="bg-[#F7F5F0] p-6 lg:p-7 relative group">
-              <div className="flex items-center justify-between mb-6">
-                <Micro>{o.sector}</Micro>
-                <svg width="12" height="15" viewBox="0 0 12 15" fill="none" className="text-[#0C1014]/25">
-                  <rect x="1" y="6" width="10" height="8" stroke="currentColor" strokeWidth="1.2"/>
-                  <path d="M3.5 6V4a2.5 2.5 0 015 0v2" stroke="currentColor" strokeWidth="1.2"/>
-                </svg>
-              </div>
-              <h3 className="serif text-[21px] leading-tight text-[#0C1014] mb-5">{o.label}</h3>
-              <div className="space-y-2 mb-6">
-                {[['Geography', o.geo], ['Stage', o.stage], ['Capital sought', o.size], ['Structure', o.type]].map(([k, v]) => (
-                  <div key={k} className="flex justify-between gap-4">
-                    <span className="text-[11.5px] text-[#0C1014]/35">{k}</span>
-                    <span className="text-[11.5px] text-[#0C1014]/70">{v}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="pt-5 border-t border-[#0C1014]/10">
-                <p className="text-[11.5px] text-[#0C1014]/40 leading-relaxed">
-                  Full detail available to registered investors whose mandate matches.
-                </p>
+            <div key={i} 
+              onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}
+              className="bg-white p-7 lg:p-8 rounded-sm border border-[#071224]/5 group relative overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-[#F5B722]/5 rounded-full blur-[50px] group-hover:bg-[#F5B722]/10 transition-colors"></div>
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-8">
+                  <Micro>{o.sector}</Micro>
+                  <svg width="14" height="18" viewBox="0 0 14 18" fill="none" className={`transition-colors duration-300 ${hovered === i ? 'text-[#F5B722]' : 'text-[#071224]/20'}`}>
+                    <rect x="1" y="7" width="12" height="10" stroke="currentColor" strokeWidth="1.5" rx="1"/>
+                    <path d="M4 7V4.5a3 3 0 016 0V7" stroke="currentColor" strokeWidth="1.5"/>
+                  </svg>
+                </div>
+                <h3 className="serif text-[22px] leading-tight text-[#071224] mb-6 group-hover:text-[#F5B722] transition-colors">{o.label}</h3>
+                <div className="space-y-3 mb-8">
+                  {[['Geography', o.geo], ['Stage', o.stage], ['Capital sought', o.size], ['Structure', o.type]].map(([k, v]) => (
+                    <div key={k} className="flex justify-between gap-4">
+                      <span className="text-[12px] text-[#071224]/35 font-medium">{k}</span>
+                      <span className="text-[12px] text-[#071224]/70 font-medium">{v}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="pt-6 border-t border-[#071224]/8">
+                  <p className="text-[11.5px] text-[#071224]/40 leading-relaxed">
+                    Full detail available to registered investors whose mandate matches.
+                  </p>
+                </div>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="bg-[#EFEBE3] p-8 lg:p-14 grid lg:grid-cols-[1.3fr_1fr] gap-10 items-center">
+        <div className="bg-[#071224] p-8 lg:p-16 rounded-sm grid lg:grid-cols-[1.3fr_1fr] gap-12 items-center">
           <div>
-            <h2 className="serif text-[clamp(1.5rem,3.2vw,2.2rem)] leading-tight text-[#0C1014] mb-5">
+            <h2 className="serif text-[clamp(1.8rem,3.5vw,2.6rem)] leading-tight text-white mb-6">
               Access is determined by mandate fit, not by request.
             </h2>
-            <p className="text-[14.5px] leading-relaxed text-[#0C1014]/55 max-w-xl">
+            <p className="text-[15.5px] leading-relaxed text-white/50 max-w-xl">
               Register your investment criteria and we will surface opportunities as they are reviewed — including those not shown here.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:items-end">
-            <Btn size="lg" onClick={() => go('investors')}>Register a mandate <Arrow /></Btn>
-            <Btn size="lg" variant="ghost" onClick={() => go('network')}>Join the network</Btn>
+          <div className="flex flex-col sm:flex-row lg:flex-col gap-4 lg:items-end">
+            <Btn size="lg" variant="primary" onClick={() => go('investors')}>Register a mandate <Arrow /></Btn>
+            <Btn size="lg" variant="ghostLight" onClick={() => go('network')}>Join the network</Btn>
           </div>
         </div>
       </section>
@@ -1740,42 +1822,42 @@ function Insights({ go }) {
   ];
 
   return (
-    <div className="fadein">
-      <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-20">
+    <div className="fadein bg-[#F0F4F8]">
+      <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-24">
         <SectionHead
           eyebrow="Insights"
           title="Market intelligence, capital trends and investment themes."
           sub="Perspectives on private capital markets, drawn from the mandates and opportunities moving through the network."
-          className="mb-14 max-w-3xl"
+          className="mb-16 max-w-3xl"
         />
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-px bg-[#0C1014]/12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {posts.map((p, i) => (
-            <article key={i} className="bg-[#F7F5F0] p-7 lg:p-8 flex flex-col group cursor-pointer hover:bg-[#EFEBE3] transition-colors">
-              <div className="flex items-center justify-between mb-6">
+            <article key={i} className="bg-white p-7 lg:p-8 rounded-sm border border-[#071224]/5 flex flex-col group cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300">
+              <div className="flex items-center justify-between mb-8">
                 <Micro>{p.cat}</Micro>
-                <span className="text-[11px] text-[#0C1014]/35">{p.read}</span>
+                <span className="text-[11px] font-medium text-[#071224]/35 bg-[#071224]/5 px-2.5 py-1 rounded-full">{p.read}</span>
               </div>
-              <h3 className="serif text-[21px] lg:text-[23px] leading-[1.25] text-[#0C1014] mb-4 flex-1">
+              <h3 className="serif text-[22px] lg:text-[24px] leading-[1.25] text-[#071224] mb-4 flex-1 group-hover:text-[#F5B722] transition-colors">
                 {p.t}
               </h3>
-              <p className="text-[13px] leading-relaxed text-[#0C1014]/50 mb-6">{p.d}</p>
-              <div className="flex items-center gap-2.5 text-[11px] tracking-[0.14em] uppercase text-[#0C1014]/40 group-hover:text-[#B0863C] transition-colors">
+              <p className="text-[13.5px] leading-relaxed text-[#071224]/50 mb-8">{p.d}</p>
+              <div className="flex items-center gap-2.5 text-[11px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold">
                 Read <Arrow className="group-hover:translate-x-1 transition-transform" />
               </div>
             </article>
           ))}
         </div>
 
-        <div className="mt-14 border border-[#0C1014]/12 p-8 lg:p-12 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+        <div className="mt-16 bg-[#071224] p-8 lg:p-14 rounded-sm flex flex-col lg:flex-row lg:items-center justify-between gap-8">
           <div className="max-w-xl">
-            <h2 className="serif text-[26px] lg:text-[32px] leading-tight text-[#0C1014] mb-3">
+            <h2 className="serif text-[28px] lg:text-[36px] leading-tight text-white mb-3">
               Receive insights as they are published.
             </h2>
-            <p className="text-[14px] text-[#0C1014]/50">No distribution lists. Occasional, substantive, and relevant.</p>
+            <p className="text-[15px] text-white/50">No distribution lists. Occasional, substantive, and relevant.</p>
           </div>
-          <div className="flex gap-2 w-full lg:w-auto">
-            <input placeholder="you@company.com" className={`${inputCls} lg:w-72`} />
+          <div className="flex gap-3 w-full lg:w-auto">
+            <input placeholder="you@company.com" className="flex-1 lg:w-72 bg-white/10 border border-white/15 rounded-sm px-4 py-3 text-[14px] text-white placeholder-white/30 focus:border-[#F5B722] focus:ring-1 focus:ring-[#F5B722]/30 outline-none transition-all" />
             <Btn>Subscribe</Btn>
           </div>
         </div>
@@ -1789,15 +1871,15 @@ function Insights({ go }) {
    ============================================================ */
 function About({ go }) {
   return (
-    <div className="fadein">
-      <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-20">
-        <div className="max-w-3xl">
+    <div className="fadein bg-[#F0F4F8]">
+      <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-24">
+        <div className="max-w-3xl mb-16">
           <SectionHead
             eyebrow="About"
             title="ML Gateway connects capital to opportunity — with discipline."
             className="mb-10"
           />
-          <div className="space-y-6 text-[15.5px] leading-relaxed text-[#0C1014]/60">
+          <div className="space-y-7 text-[16.5px] leading-relaxed text-[#071224]/60">
             <p>
               ML Gateway exists because private capital does not move through lists. It moves through fit — a specific investor with a specific mandate, meeting a specific opportunity at the right stage, size and structure.
             </p>
@@ -1810,27 +1892,27 @@ function About({ go }) {
           </div>
         </div>
 
-        <div className="mt-16 grid md:grid-cols-3 gap-px bg-[#0C1014]/12">
+        <div className="grid md:grid-cols-3 gap-6 mb-16">
           {[
             ['Fit before volume', 'Every introduction is justified by mandate alignment, not by list size.'],
             ['Discretion by default', 'Nothing is shared without agreement. Confidentiality is structural, not a promise.'],
             ['Clarity at every stage', 'You always know what happens next, what is required, and what it costs.'],
           ].map(([t, d], i) => (
-            <div key={i} className="bg-[#F7F5F0] p-8 lg:p-10">
-              <span className="serif text-[13px] text-[#B0863C] block mb-6">{String(i + 1).padStart(2, '0')}</span>
-              <h3 className="serif text-[24px] text-[#0C1014] mb-3">{t}</h3>
-              <p className="text-[13.5px] leading-relaxed text-[#0C1014]/50">{d}</p>
+            <div key={i} className="bg-white p-8 lg:p-10 rounded-sm border border-[#071224]/5 hover:shadow-lg transition-shadow">
+              <span className="serif text-[15px] text-[#F5B722] block mb-6 font-bold">{String(i + 1).padStart(2, '0')}</span>
+              <h3 className="serif text-[26px] text-[#071224] mb-3">{t}</h3>
+              <p className="text-[14px] leading-relaxed text-[#071224]/50">{d}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-16 bg-[#0C1014] p-8 lg:p-14">
+        <div className="bg-[#071224] p-8 lg:p-16 rounded-sm">
           <div className="max-w-2xl">
-            <h2 className="serif text-[clamp(1.6rem,3.4vw,2.4rem)] leading-tight text-[#F7F5F0] mb-6">
+            <h2 className="serif text-[clamp(1.8rem,3.8vw,2.8rem)] leading-tight text-white mb-8">
               Begin where you are.
             </h2>
-            <div className="flex flex-wrap gap-3">
-              <Btn variant="brass" size="lg" onClick={() => go('fit')}>Find your capital pathway <Arrow /></Btn>
+            <div className="flex flex-wrap gap-4">
+              <Btn variant="primary" size="lg" onClick={() => go('fit')}>Find your capital pathway <Arrow /></Btn>
               <Btn variant="ghostLight" size="lg" onClick={() => go('how')}>How it works</Btn>
             </div>
           </div>
@@ -1872,10 +1954,11 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F5F0] flex flex-col">
+    <div className="min-h-screen bg-[#F0F4F8] flex flex-col">
       <Nav route={route} go={go} />
       <main className="flex-1">{view()}</main>
       <Footer go={go} />
+      <FloatingAssistant />
     </div>
   );
 }
