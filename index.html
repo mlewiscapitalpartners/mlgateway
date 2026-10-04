@@ -325,8 +325,8 @@ const PAYMENT_METHODS = {
 };
 
 const SUBMISSION_FEE = {
-  zambia: { amount: 'K120', currency: 'ZMW', label: 'Zambia' },
-  international: { amount: '$10 USD', currency: 'USD', label: 'International' }
+  zambia: { amount: 'K83', currency: 'ZMW', label: 'Zambia' },
+  international: { amount: '$7 USD', currency: 'USD', label: 'International' }
 };
 function getSubmissionFee(country) {
   return (country || '').trim() === 'Zambia' ? SUBMISSION_FEE.zambia : SUBMISSION_FEE.international;
@@ -2114,7 +2114,7 @@ function TermsPanel({ quote }) {
             <p className="text-[14.5px] font-semibold text-white">Submission &amp; Assessment Fee</p>
             <span className="text-[10px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold whitespace-nowrap">On submission</span>
           </div>
-          <p className="text-[11px] text-white/40 mb-2">K120 (Zambia) · $10 USD (rest of world)</p>
+          <p className="text-[11px] text-white/40 mb-2">K83 (Zambia) · $7 USD (rest of world)</p>
           <p className="text-[12.5px] leading-relaxed text-white/50">Non-refundable. Activates the automated platform assessment that returns your decision.</p>
         </div>
 
@@ -2678,7 +2678,7 @@ function CapitalFit({ go, onComplete }) {
             <p className="text-[15.5px] leading-relaxed text-[#071224]/55 mb-10">This orientation helps frame your opportunity. To receive the full automated screening and a formal decision, submit your opportunity and pay the non-refundable Submission &amp; Assessment Fee.</p>
             <div className="bg-[#071224] p-6 lg:p-8 rounded-sm mb-10">
               <div className="flex flex-wrap items-center gap-3 mb-4"><span className="w-2 h-2 rounded-full bg-[#F5B722] pulse-soft"></span><Micro light>Next step — Paid submission</Micro></div>
-              <p className="text-[14px] text-white/60 mb-5">Submission &amp; Assessment Fee: <strong className="text-[#F5B722]">K120 (Zambia)</strong> · <strong className="text-[#F5B722]">$10 USD (rest of world)</strong>.</p>
+              <p className="text-[14px] text-white/60 mb-5">Submission &amp; Assessment Fee: <strong className="text-[#F5B722]">K83 (Zambia)</strong> · <strong className="text-[#F5B722]">$7 USD (rest of world)</strong>.</p>
               <Btn variant="primary" onClick={() => onComplete(answers)}>Proceed to submission <Arrow /></Btn>
             </div>
             <Btn variant="ghost" onClick={() => { setDone(false); setStep(0); }}>Change my answers</Btn>
@@ -3304,11 +3304,11 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
               <div className="space-y-2.5">
                 <div className="flex justify-between gap-3 text-[12px] border-b border-[#071224]/6 pb-2">
                   <span className="text-[#071224]/55">Zambia</span>
-                  <span className="text-[#071224] font-semibold">K120</span>
+                  <span className="text-[#071224] font-semibold">K83</span>
                 </div>
                 <div className="flex justify-between gap-3 text-[12px]">
                   <span className="text-[#071224]/55">Rest of world</span>
-                  <span className="text-[#071224] font-semibold">$10 USD</span>
+                  <span className="text-[#071224] font-semibold">$7 USD</span>
                 </div>
               </div>
               <p className="mt-4 text-[11px] leading-relaxed text-[#071224]/40">Payable via Airtel Money, MTN MoMo, Standard Chartered Bank, PayPal or Crypto. Proof is verified via WhatsApp.</p>
