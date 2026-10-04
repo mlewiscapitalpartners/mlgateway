@@ -332,6 +332,22 @@ function getSubmissionFee(country) {
   return (country || '').trim() === 'Zambia' ? SUBMISSION_FEE.zambia : SUBMISSION_FEE.international;
 }
 
+const INVESTOR_ACCESS_FEE = {
+  amount: '$99 USD',
+  currency: 'USD',
+  purpose: 'Investor Access Fee',
+  purposeDetail: 'One-time platform access. Unlocks full detail on every curated opportunity in the ML Gateway private-capital network.'
+};
+
+const SEED_CURATED_OPPORTUNITIES = [
+  { id: 'OPP-2026-001', sector: 'Financial services', country: 'Kenya', stage: 'Profitable & scaling', amount: '$5m – $10m', capitalType: 'Growth capital', purposes: ['Expansion capital'], tierLabel: 'Investment-Ready', status: 'Investment-Ready', score: 84, label: 'Expansion capital for a regional lender', listedAt: '2026-09-14' },
+  { id: 'OPP-2026-002', sector: 'Agriculture & agribusiness', country: 'South Africa', stage: 'Revenue-generating', amount: '$1m – $5m', capitalType: 'Growth capital', purposes: ['Working capital'], tierLabel: 'Investment-Ready', status: 'Investment-Ready', score: 80, label: 'Working capital for an export agri-processor', listedAt: '2026-09-21' },
+  { id: 'OPP-2026-003', sector: 'Energy & renewables', country: 'Nigeria', stage: 'Revenue-generating', amount: '$10m – $25m', capitalType: 'Project & infrastructure capital', purposes: ['Project capital'], tierLabel: 'Investment-Grade', status: 'Investment-Grade', score: 90, label: 'C&I solar platform, multi-site rollout', listedAt: '2026-08-30' },
+  { id: 'OPP-2026-004', sector: 'Logistics & transport', country: 'Pan-African', stage: 'Profitable & scaling', amount: '$25m – $50m', capitalType: 'Acquisition capital', purposes: ['Acquisition capital'], tierLabel: 'Investment-Grade', status: 'Investment-Grade', score: 89, label: 'Buy-and-build in cold-chain logistics', listedAt: '2026-09-02' },
+  { id: 'OPP-2026-005', sector: 'Healthcare & life sciences', country: 'Egypt', stage: 'Revenue-generating', amount: '$5m – $10m', capitalType: 'Growth capital', purposes: ['Expansion capital'], tierLabel: 'Investment-Ready', status: 'Investment-Ready', score: 81, label: 'Diagnostics network expansion', listedAt: '2026-09-19' },
+  { id: 'OPP-2026-006', sector: 'Technology & software', country: 'Zambia', stage: 'Revenue-generating', amount: '$1m – $5m', capitalType: 'Growth capital', purposes: ['Growth capital'], tierLabel: 'Growth-Ready — Conditions Apply', status: 'Growth-Ready', score: 66, label: 'B2B payments infrastructure', listedAt: '2026-09-25' },
+];
+
 function numberToWords(num){
   const ones = ['','One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten','Eleven','Twelve','Thirteen','Fourteen','Fifteen','Sixteen','Seventeen','Eighteen','Nineteen'];
   const tens = ['','','Twenty','Thirty','Forty','Fifty','Sixty','Seventy','Eighty','Ninety'];
@@ -620,6 +636,12 @@ function computeEngagementFee(formData, assessment) {
 }
 
 function formatUSD(n) { return '$' + n.toLocaleString('en-US') + ' USD'; }
+
+function statusBadgeClass(status) {
+  if (status === 'Investment-Grade') return 'bg-[#F5B722] text-[#071224]';
+  if (status === 'Investment-Ready') return 'bg-[#F5B722]/15 text-[#B8860B] border border-[#F5B722]/30';
+  return 'bg-[#E0A030]/15 text-[#A87820] border border-[#E0A030]/30';
+}
 
 /* ============================================================
    ENTERPRISE DIAGNOSTIC CONTENT
@@ -1706,7 +1728,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
               Your engagement has commenced.
             </h1>
             <p className="text-[16px] leading-relaxed text-[#071224]/55 mb-12">
-              The Engagement Fee has been received. Your opportunity is now active in the ML Gateway private-capital network and matching against live investor mandates has begun.
+              The Engagement Fee has been received. Your opportunity is now active in the ML Gateway private-capital network and matching against live investor mandates has begun. It has also been added to the curated opportunity environment, visible to verified investors.
             </p>
 
             <div className="bg-white rounded-sm border border-[#071224]/8 overflow-hidden mb-8">
@@ -1743,10 +1765,10 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
               <div className="space-y-5">
                 {[
                   { t: 'Engagement Letter filed', d: 'A countersigned copy of your Engagement Letter has been sent to ' + formData.contactEmail + '.' },
+                  { t: 'Listed in curated opportunities', d: 'Your opportunity is now live in the investor environment. Full detail is released to verified investors only.' },
                   { t: 'Opportunity positioning', d: 'Your opportunity is being written into mandate-aligned language for the network. This takes 3 – 5 business days.' },
                   { t: 'Mandate matching', d: 'Your opportunity is assessed against live investor mandates — sector, stage, geography, ticket size and structure.' },
                   { t: 'Curated introductions', d: assessment.tier === 'investment-grade' ? 'First curated introduction within 10 – 14 business days.' : assessment.tier === 'investment-ready' ? 'First curated introduction within 14 – 21 business days.' : 'First curated introduction within 21 – 30 business days, once conditions are evidenced.' },
-                  { t: 'Engagement coordination', d: 'ML Gateway coordinates first meetings, information flow and follow-up between you and matched investors.' },
                 ].map((s, i) => (
                   <div key={i} className="flex gap-4">
                     <span className="serif text-[14px] text-[#F5B722] w-6 shrink-0 pt-0.5 font-bold">{String(i + 1).padStart(2, '0')}</span>
@@ -1784,7 +1806,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
 }
 
 /* ============================================================
-   DIAGNOSTIC PURCHASE MODAL — real payment, discounted rate
+   DIAGNOSTIC PURCHASE MODAL
    ============================================================ */
 function PurchaseModal({ open, onClose, courtesyAmount, context }) {
   const [step, setStep] = useState(0);
@@ -1795,8 +1817,6 @@ function PurchaseModal({ open, onClose, courtesyAmount, context }) {
   useEffect(() => { if (open) { setStep(0); setF({ name: '', email: '', company: '', country: '', consent: false }); } }, [open]);
   if (!open) return null;
 
-  // Standard fee is $50 USD.
-  // Discounted rate: $29 USD (investment-ready) or $19 USD (developing / not-yet-ready).
   const priceInfo =
     courtesyAmount === 29
       ? { price: '$29 USD', standard: '$50 USD', discount: '$21 USD', label: 'Investment-ready rate', note: 'This discounted rate applies to your engagement as an investment-ready business.' }
@@ -1894,6 +1914,103 @@ function PurchaseModal({ open, onClose, courtesyAmount, context }) {
               applicant={{ firstName: f.name.split(' ')[0] || f.name, lastName: f.name.split(' ').slice(1).join(' ') || '', email: f.email, phone: '', country: f.country, company: f.company }}
               receiptPrefix="MLG-DIAG"
               onConfirmed={() => {}}
+              onClose={onClose}
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   INVESTOR ACCESS MODAL — pay to unlock curated opportunities
+   ============================================================ */
+function InvestorAccessModal({ open, onClose, onUnlocked }) {
+  const [step, setStep] = useState(0);
+  useEffect(() => { if (open) setStep(0); }, [open]);
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 modal-fade" style={{ background: 'rgba(7,18,36,0.85)', backdropFilter: 'blur(8px)' }}>
+      <div className="bg-[#F0F4F8] rounded-sm shadow-2xl max-w-3xl w-full max-h-[92vh] overflow-y-auto modal-card border border-[#F5B722]/20">
+        <div className="bg-[#071224] px-6 lg:px-8 py-5 flex items-center justify-between border-b border-[#F5B722]/20 sticky top-0 z-10">
+          <div className="flex items-center gap-3">
+            <span className="w-2 h-2 rounded-full bg-[#F5B722] pulse-soft"></span>
+            <Micro light>Investor Access — Unlock Curated Opportunities</Micro>
+          </div>
+          <button onClick={onClose} className="text-white/50 hover:text-white transition-colors">
+            <svg width="16" height="16" viewBox="0 0 14 14" fill="none"><path d="M1 1L13 13M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+          </button>
+        </div>
+
+        {step === 0 && (
+          <div className="p-6 lg:p-8">
+            <h3 className="serif text-[28px] lg:text-[32px] text-[#071224] mb-3">Unlock the curated opportunity environment.</h3>
+            <p className="text-[14px] leading-relaxed text-[#071224]/55 mb-7">Full detail on every curated opportunity in the ML Gateway private-capital network — sector, geography, capital sought, stage and structure. One-time platform access, valid on your account.</p>
+
+            <div className="bg-[#071224] rounded-sm p-6 mb-6">
+              <div className="flex flex-wrap items-baseline justify-between gap-5">
+                <div>
+                  <p className="text-[11px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold mb-1.5">Investor Access Fee</p>
+                  <p className="serif text-[44px] text-white leading-none">{INVESTOR_ACCESS_FEE.amount}</p>
+                  <p className="text-[11.5px] text-white/45 mt-2.5">One-time. Valid on your account.</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[11px] tracking-[0.14em] uppercase text-white/40 font-semibold mb-1.5">Access type</p>
+                  <p className="serif text-[20px] text-white">Full network access</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-sm p-6 mb-6 border border-[#071224]/5">
+              <Micro className="block mb-4">What you unlock</Micro>
+              <div className="grid sm:grid-cols-2 gap-x-6 gap-y-3">
+                {[
+                  'Full detail on every curated opportunity',
+                  'Sector, geography, stage and structure',
+                  'Capital sought and use of funds',
+                  'Investor-ready status and assessment tier',
+                  'Express interest on any opportunity',
+                  'Direct introduction pathway via ML Gateway'
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-2.5 text-[12.5px] leading-relaxed text-[#071224]/70">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F5B722" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0"><path d="M20 6L9 17l-5-5"/></svg>
+                    {item}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-[#F5B722]/10 border border-[#F5B722]/30 rounded-sm p-5 mb-6 flex gap-3">
+              <i className="fas fa-info-circle" style={{ color: '#B8860B', fontSize: 16, marginTop: 2 }}></i>
+              <p className="text-[12.5px] leading-relaxed text-[#071224]/75">
+                Access unlocks immediately once payment is recorded. Your access persists on your account and unlocks all curated opportunities, including new ones added to the network.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Btn size="lg" onClick={() => setStep(1)} className="flex-1">Proceed to payment <Arrow /></Btn>
+              <Btn size="lg" variant="ghost" onClick={onClose}>Cancel</Btn>
+            </div>
+            <p className="mt-4 text-[11px] text-[#071224]/35 text-center">Secure payment via Airtel Money, MTN MoMo, Bank, PayPal or Crypto.</p>
+          </div>
+        )}
+
+        {step === 1 && (
+          <div className="p-6 lg:p-8">
+            <button onClick={() => setStep(0)} className="inline-flex items-center gap-2 text-[12px] text-[#071224]/50 hover:text-[#F5B722] transition-colors mb-6">
+              <svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M5 1L1 5L5 9M1 5H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+              Back
+            </button>
+            <PaymentFlow
+              amount={INVESTOR_ACCESS_FEE.amount}
+              currency="USD"
+              purpose={INVESTOR_ACCESS_FEE.purpose}
+              purposeDetail={INVESTOR_ACCESS_FEE.purposeDetail}
+              applicant={{ firstName: '', lastName: '', email: '', phone: '', country: '', company: '' }}
+              receiptPrefix="MLG-INV"
+              onConfirmed={onUnlocked}
               onClose={onClose}
             />
           </div>
@@ -2120,6 +2237,15 @@ function TermsPanel({ quote }) {
 
         <div className="pt-6 border-t border-white/10">
           <div className="flex items-baseline justify-between gap-4 mb-3">
+            <p className="text-[14.5px] font-semibold text-white">Investor Access Fee</p>
+            <span className="text-[10px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold whitespace-nowrap">On unlock</span>
+          </div>
+          <p className="serif text-[28px] text-[#F5B722] mb-2 leading-none">{INVESTOR_ACCESS_FEE.amount}</p>
+          <p className="text-[12.5px] leading-relaxed text-white/50">One-time. Unlocks full detail on every curated opportunity in the network.</p>
+        </div>
+
+        <div className="pt-6 border-t border-white/10">
+          <div className="flex items-baseline justify-between gap-4 mb-3">
             <p className="text-[14.5px] font-semibold text-white">Engagement Fee</p>
             <span className="text-[10px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold whitespace-nowrap">Upon commencement</span>
           </div>
@@ -2240,6 +2366,7 @@ function Home({ go, openPurchase }) {
             <div className="grid grid-cols-2 gap-x-8 gap-y-9 lg:pt-4">
               {[
                 ['Submission & Assessment Fee', 'Payable on submission. Non-refundable.'],
+                ['Investor Access Fee', 'One-time. Unlocks the curated opportunity environment.'],
                 ['Engagement Fee', 'Payable on commencement. Quoted in your Engagement Proposal.'],
                 ['Success Fee', 'Payable only on successful capital mobilisation.'],
                 ['Diagnostic Report fee', 'Standard $50 USD. Discounted rates apply based on assessment outcome.'],
@@ -2791,7 +2918,7 @@ function EngagementPathwayPanel({ assessment, formData }) {
           Your decision qualifies you for engagement.
         </h3>
         <p className="text-[13.5px] leading-relaxed text-white/55 mb-7 max-w-2xl">
-          Because your assessment returned <span className="text-[#F5B722] font-semibold">{assessment.decision === 'approve' ? 'APPROVE' : 'PROCEED WITH CONDITIONS'}</span>, the platform will now generate your Engagement Proposal and Engagement Letter automatically. On your acceptance, you pay the quoted Engagement Fee and engagement commences.
+          Because your assessment returned <span className="text-[#F5B722] font-semibold">{assessment.decision === 'approve' ? 'APPROVE' : 'PROCEED WITH CONDITIONS'}</span>, the platform will now generate your Engagement Proposal and Engagement Letter automatically. On your acceptance, you pay the quoted Engagement Fee and engagement commences. Your opportunity is also added to the curated opportunity environment, visible to verified investors.
         </p>
 
         <div className="grid sm:grid-cols-3 gap-4 mb-7">
@@ -2968,7 +3095,7 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
                     {f.consent && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#071224" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                   </span>
                   <span className="text-[13px] leading-relaxed text-[#071224]/65">
-                    I confirm the information provided is accurate and I consent to ML Gateway reviewing this opportunity against its private-capital network, generating engagement documentation, and holding this assessment on file.
+                    I confirm the information provided is accurate and I consent to ML Gateway reviewing this opportunity against its private-capital network, generating engagement documentation, listing this opportunity in the curated environment accessible to verified investors, and holding this assessment on file.
                   </span>
                 </button>
               </div>
@@ -2988,7 +3115,7 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
             </div>
             {proceedToEngagement && (
               <p className="mt-5 text-[12px] leading-relaxed text-[#071224]/45 max-w-2xl">
-                On proceeding, the platform will generate your Engagement Proposal and Engagement Letter. Review and sign the letter, then pay the quoted Engagement Fee to commence.
+                On proceeding, the platform will generate your Engagement Proposal and Engagement Letter, and list your opportunity in the curated investor environment. Review and sign the letter, then pay the quoted Engagement Fee to commence.
               </p>
             )}
           </div>
@@ -3007,7 +3134,7 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
               <Micro className="block mb-5">After your decision</Micro>
               <div className="space-y-4">
                 {[
-                  { t: 'Approved or conditional', d: 'You are moved directly into the engagement pathway — proposal, letter, fee quote.', accent: true },
+                  { t: 'Approved or conditional', d: 'You are moved directly into the engagement pathway — proposal, letter, fee quote. Your opportunity is also listed in the curated environment for verified investors.', accent: true },
                   { t: 'Declined', d: 'Your submission is saved. The Enterprise Diagnostic is available as an optional next step.', accent: false },
                 ].map((r, i) => (
                   <div key={i} className={`p-4 rounded-sm border ${r.accent ? 'bg-[#F5B722]/8 border-[#F5B722]/30' : 'bg-[#F0F4F8] border-[#071224]/8'}`}>
@@ -3035,9 +3162,10 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
 /* ============================================================
    BUSINESS ACCESS
    ============================================================ */
-function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
+function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced, onListCurated }) {
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const listedRef = useRef(false);
   const [f, setF] = useState({
     company: '', country: '', sector: prefill?.sector || '', legalStructure: '', yearsOperation: '', employees: '', stage: prefill?.stage || '',
     revenue: '', revenueCurrency: 'USD', revenueTrajectory: '', ebitdaPosition: '', financialStatements: '', financialHistory: '',
@@ -3071,8 +3199,14 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
   const submissionFee = useMemo(() => getSubmissionFee(f.country), [f.country]);
 
   const handlePaymentConfirmed = () => setStep(5);
+
   const handleSubmit = () => {
     if (assessment.decision === 'approve' || assessment.decision === 'conditional') {
+      // Auto-list the opportunity as a curated opportunity — visible to verified investors
+      if (!listedRef.current) {
+        listedRef.current = true;
+        if (onListCurated) onListCurated(assessment, f, refCode);
+      }
       setStep(6);
     } else {
       setSubmitted(true);
@@ -3087,7 +3221,7 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
         assessment={assessment}
         formData={f}
         refCode={refCode}
-        onCommenced={(record) => { onEngagementCommenced(record); }}
+        onCommenced={(record) => { onEngagementCommenced(record, assessment, f); }}
         onExit={() => go('home')}
       />
     );
@@ -3281,7 +3415,7 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
                 {[
                   { t: 'Immediate decision', d: 'APPROVE, PROCEED WITH CONDITIONS, or DECLINE.' },
                   { t: 'Full rationale', d: 'You see exactly why the decision was reached.' },
-                  { t: 'Pathway if approved', d: 'Approved opportunities move into the engagement pathway.' },
+                  { t: 'Pathway if approved', d: 'Approved opportunities move into the engagement pathway and are listed for verified investors.' },
                 ].map((s, i) => (
                   <div key={i} className="flex gap-3">
                     <span className="serif text-[13px] text-[#F5B722] font-bold w-5 shrink-0 pt-0.5">{String(i + 1).padStart(2, '0')}</span>
@@ -3317,7 +3451,7 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
               { t: 'Complete assessment', d: 'Four short sections: identity, financials, capital raise, governance.' },
               { t: 'Pay the assessment fee', d: 'Non-refundable. Activates the platform screening.' },
               { t: 'Immediate decision', d: 'Our system returns APPROVE, PROCEED WITH CONDITIONS, or DECLINE.' },
-              { t: 'Engagement pathway', d: 'Approve or conditional decisions generate the Engagement Proposal and Letter.' },
+              { t: 'Engagement pathway & listing', d: 'Approve or conditional decisions generate the Engagement Proposal and Letter, and list your opportunity for verified investors.' },
             ]} />
             <TermsPanel />
           </aside>
@@ -3556,7 +3690,7 @@ function Network({ go }) {
             <div className="bg-[#071224] text-white p-6 lg:p-8 rounded-sm">
               <Micro light className="block mb-7">Membership</Micro>
               <div className="space-y-6">
-                {[['Curated only','Opportunities arrive because they match your mandate — never as a bulk list.'],['Screened','Every opportunity has passed automated assessment before you see it.'],['No obligation','You review, and decide whether to proceed to introduction.'],['No cost to join','Network participation is by invitation and carries no fee.']].map(([t, d], i) => (
+                {[['Curated only','Opportunities arrive because they match your mandate — never as a bulk list.'],['Screened','Every opportunity has passed automated assessment before you see it.'],['No obligation','You review, and decide whether to proceed to introduction.'],['Investor access fee','A one-time fee unlocks full detail on every curated opportunity.']].map(([t, d], i) => (
                   <div key={i} className="border-l-2 border-[#F5B722]/40 pl-5">
                     <p className="text-[14px] font-semibold mb-1.5 text-white">{t}</p>
                     <p className="text-[13px] leading-relaxed text-white/45">{d}</p>
@@ -3579,7 +3713,7 @@ function HowItWorks({ go, openPurchase }) {
   const steps = [
     { n: '01', t: 'Submit', d: 'You complete a structured assessment — identity, financials, capital raise, governance and investment readiness.', side: 'Roughly 5 minutes.' },
     { n: '02', t: 'Screen', d: 'Our system assesses the opportunity against the platform criteria and returns an immediate APPROVE, PROCEED WITH CONDITIONS or DECLINE decision with full rationale.', side: 'Instant.' },
-    { n: '03', t: 'Engage', d: 'APPROVE and PROCEED WITH CONDITIONS decisions automatically generate an Engagement Proposal and Letter, with a fee quote issued for your engagement.', side: 'Automatic.' },
+    { n: '03', t: 'Engage', d: 'APPROVE and PROCEED WITH CONDITIONS decisions automatically generate an Engagement Proposal and Letter, with a fee quote issued for your engagement. Your opportunity is also listed in the curated opportunity environment.', side: 'Automatic.' },
     { n: '04', t: 'Mobilise', d: 'On payment of the Engagement Fee, matching against live investor mandates begins. Curated introductions follow, and capital progresses toward close.', side: 'Party-led.' },
   ];
   return (
@@ -3618,6 +3752,10 @@ function HowItWorks({ go, openPurchase }) {
               <Micro className="block mb-4">Enterprise Diagnostic</Micro>
               <p className="text-[13px] leading-relaxed text-[#071224]/60">Standard fee $50 USD. Discounted rates apply at the point of purchase based on assessment outcome — $29 USD for investment-ready businesses, $19 USD for those still developing.</p>
             </div>
+            <div className="mt-6 pt-6 border-t border-[#071224]/8">
+              <Micro className="block mb-4">Investor Access Fee</Micro>
+              <p className="text-[13px] leading-relaxed text-[#071224]/60">One-time platform access of {INVESTOR_ACCESS_FEE.amount}. Unlocks full detail on every curated opportunity in the network.</p>
+            </div>
           </div>
         </div>
 
@@ -3627,7 +3765,7 @@ function HowItWorks({ go, openPurchase }) {
             {[
               { t: 'Structured submission', d: 'You complete a structured form covering identity, financials, capital raise and governance.' },
               { t: 'Immediate decision', d: 'The platform returns APPROVE, PROCEED WITH CONDITIONS, or DECLINE with full rationale.' },
-              { t: 'Pathway if approved', d: 'Approved opportunities move into the engagement pathway with a formal proposal and letter.' },
+              { t: 'Pathway if approved', d: 'Approved opportunities move into the engagement pathway with a formal proposal, letter, and listing in the curated environment.' },
             ].map((d, i) => (
               <div key={i} className="bg-white p-7 rounded-sm border border-[#071224]/5">
                 <span className="serif text-[13px] text-[#F5B722] font-bold block mb-4">{String(i + 1).padStart(2, '0')}</span>
@@ -3694,6 +3832,7 @@ function HowItWorks({ go, openPurchase }) {
             <WhatHappensNext items={[
               { t: 'You are told either way', d: 'A clear yes, conditional yes, or no — with reasoning. Not silence.' },
               { t: 'Engagement is automatic', d: 'Approved and conditional opportunities receive their Proposal and Letter automatically.' },
+              { t: 'Listed in curated environment', d: 'Approved opportunities are listed for verified investors with full confidentiality protections.' },
               { t: 'You control disclosure', d: 'Nothing is shared with any investor without your agreement.' },
               { t: 'You can revise', d: 'If you are declined, you can address the critical items and reapply.' },
             ]} />
@@ -3718,47 +3857,122 @@ function HowItWorks({ go, openPurchase }) {
 }
 
 /* ============================================================
-   OPPORTUNITIES
+   OPPORTUNITIES — with locked/unlocked investor access
    ============================================================ */
-function Opportunities({ go }) {
-  const [hovered, setHovered] = useState(null);
-  const sample = [
-    { sector: 'Financial services', geo: 'East Africa', stage: 'Profitable & scaling', size: '$5m – $10m', type: 'Growth equity', label: 'Expansion capital for a regional lender', status: 'Investment-Ready' },
-    { sector: 'Agriculture & agribusiness', geo: 'Southern Africa', stage: 'Revenue-generating', size: '$1m – $5m', type: 'Growth capital', label: 'Working capital for an export agri-processor', status: 'Investment-Ready' },
-    { sector: 'Energy & renewables', geo: 'West Africa', stage: 'Revenue-generating', size: '$10m – $25m', type: 'Project capital', label: 'C&I solar platform, multi-site rollout', status: 'Investment-Grade' },
-    { sector: 'Logistics & transport', geo: 'Pan-African', stage: 'Profitable & scaling', size: '$25m – $50m', type: 'Acquisition capital', label: 'Buy-and-build in cold-chain logistics', status: 'Investment-Grade' },
-    { sector: 'Healthcare & life sciences', geo: 'North Africa', stage: 'Revenue-generating', size: '$5m – $10m', type: 'Growth equity', label: 'Diagnostics network expansion', status: 'Investment-Ready' },
-    { sector: 'Technology & software', geo: 'Africa', stage: 'Revenue-generating', size: '$1m – $5m', type: 'Growth capital', label: 'B2B payments infrastructure', status: 'Conditional' },
-  ];
+function OpportunityCard({ opp, unlocked, onUnlock }) {
+  const statusCls = statusBadgeClass(opp.status);
+  return (
+    <div className="bg-white p-7 lg:p-8 rounded-sm border border-[#071224]/5 group relative overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-[#F5B722]/5 rounded-full blur-[50px] group-hover:bg-[#F5B722]/10 transition-colors"></div>
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-6 gap-2">
+          <Micro className="truncate">{opp.sector}</Micro>
+          <span className={`text-[9.5px] font-bold tracking-[0.08em] uppercase px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 ${statusCls}`}>{opp.status}</span>
+        </div>
+
+        {unlocked ? (
+          <>
+            <h3 className="serif text-[22px] leading-tight text-[#071224] mb-6 group-hover:text-[#F5B722] transition-colors">{opp.label}</h3>
+            <div className="space-y-3 mb-8">
+              {[['Geography', opp.country], ['Stage', opp.stage], ['Capital sought', opp.amount], ['Structure', opp.capitalType || '—']].map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-4">
+                  <span className="text-[12px] text-[#071224]/35 font-medium">{k}</span>
+                  <span className="text-[12px] text-[#071224]/70 font-medium text-right">{v}</span>
+                </div>
+              ))}
+            </div>
+            <div className="pt-6 border-t border-[#071224]/8">
+              <button className="w-full inline-flex items-center justify-center gap-2.5 bg-[#F5B722] text-[#071224] px-4 py-3 rounded-sm text-[12.5px] font-semibold hover:bg-[#FFCA3A] transition-all">
+                Express interest <Arrow />
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h3 className="serif text-[22px] leading-tight mb-6 text-[#071224]/30 select-none" style={{ filter: 'blur(5px)' }}>
+              Curated opportunity in {opp.sector}
+            </h3>
+            <div className="space-y-3 mb-8">
+              <div className="flex justify-between gap-4">
+                <span className="text-[12px] text-[#071224]/35 font-medium">Geography</span>
+                <span className="text-[12px] text-[#071224]/70 font-medium">{opp.country}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-[12px] text-[#071224]/35 font-medium">Stage</span>
+                <span className="text-[12px] text-[#071224]/70 font-medium">{opp.stage}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-[12px] text-[#071224]/35 font-medium">Capital sought</span>
+                <span className="text-[12px] text-[#071224]/70 font-medium">{opp.amount}</span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-[12px] text-[#071224]/35 font-medium">Structure</span>
+                <span className="text-[12px] text-[#071224]/70 font-medium select-none" style={{ filter: 'blur(5px)' }}>{opp.capitalType || 'Confidential'}</span>
+              </div>
+            </div>
+            <div className="pt-6 border-t border-[#071224]/8">
+              <button onClick={onUnlock} className="w-full inline-flex items-center justify-center gap-2.5 bg-[#071224] text-white px-4 py-3 rounded-sm text-[12.5px] font-semibold hover:bg-[#0F203A] transition-all">
+                <i className="fas fa-lock" style={{ fontSize: 11 }} aria-hidden="true"></i> Unlock full detail
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function Opportunities({ go, curatedOpps, investorUnlocked, onUnlock }) {
+  const lockedCount = curatedOpps.length;
   return (
     <div className="fadein bg-[#F0F4F8]">
       <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-24">
-        <SectionHead eyebrow="Opportunities" title="A curated, access-controlled environment." sub="Every opportunity in the network has passed automated assessment and, where approved, entered engagement. Detail is released progressively, subject to confidentiality and mandates." className="mb-16 max-w-3xl" />
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          {sample.map((o, i) => (
-            <div key={i} onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)} className="bg-white p-7 lg:p-8 rounded-sm border border-[#071224]/5 group relative overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#F5B722]/5 rounded-full blur-[50px] group-hover:bg-[#F5B722]/10 transition-colors"></div>
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-6 gap-2">
-                  <Micro className="truncate">{o.sector}</Micro>
-                  <span className={`text-[9.5px] font-bold tracking-[0.08em] uppercase px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 ${o.status === 'Investment-Grade' ? 'bg-[#F5B722] text-[#071224]' : o.status === 'Investment-Ready' ? 'bg-[#F5B722]/15 text-[#B8860B] border border-[#F5B722]/30' : 'bg-[#E0A030]/15 text-[#A87820] border border-[#E0A030]/30'}`}>{o.status}</span>
-                </div>
-                <h3 className="serif text-[22px] leading-tight text-[#071224] mb-6 group-hover:text-[#F5B722] transition-colors">{o.label}</h3>
-                <div className="space-y-3 mb-8">
-                  {[['Geography', o.geo], ['Stage', o.stage], ['Capital sought', o.size], ['Structure', o.type]].map(([k, v]) => (
-                    <div key={k} className="flex justify-between gap-4">
-                      <span className="text-[12px] text-[#071224]/35 font-medium">{k}</span>
-                      <span className="text-[12px] text-[#071224]/70 font-medium">{v}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="pt-6 border-t border-[#071224]/8">
-                  <p className="text-[11.5px] text-[#071224]/40 leading-relaxed">Full detail available to registered investors whose mandate matches.</p>
-                </div>
-              </div>
+        <SectionHead eyebrow="Opportunities" title="A curated, access-controlled environment." sub="Every opportunity in the network has passed automated assessment. Businesses assessed as investment-ready or growth-ready are listed here for verified investors. Full detail is released to investors on payment of the one-time access fee." className="mb-12 max-w-3xl" />
+
+        {investorUnlocked ? (
+          <div className="bg-[#F5B722]/10 border border-[#F5B722]/40 rounded-sm p-5 lg:p-6 mb-12 flex flex-wrap items-center gap-4">
+            <span className="w-10 h-10 rounded-full bg-[#F5B722] flex items-center justify-center shrink-0">
+              <i className="fas fa-lock-open" style={{ color: '#071224', fontSize: 15 }} aria-hidden="true"></i>
+            </span>
+            <div className="flex-1 min-w-[200px]">
+              <p className="text-[13.5px] font-semibold text-[#071224] mb-0.5">Full access unlocked</p>
+              <p className="text-[12px] text-[#071224]/60">You have full detail on all {lockedCount} curated {lockedCount === 1 ? 'opportunity' : 'opportunities'} in the network. New opportunities are automatically visible.</p>
             </div>
-          ))}
-        </div>
+            <span className="text-[10.5px] tracking-[0.14em] uppercase font-semibold text-[#B8860B]">Active</span>
+          </div>
+        ) : (
+          <div className="bg-[#071224] rounded-sm p-6 lg:p-8 mb-12 grid lg:grid-cols-[1fr_auto] gap-8 items-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-56 h-56 bg-[#F5B722]/10 rounded-full blur-[80px] pointer-events-none"></div>
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="w-2 h-2 rounded-full bg-[#F5B722] pulse-soft"></span>
+                <Micro light>Investor Access Required</Micro>
+              </div>
+              <h3 className="serif text-[24px] lg:text-[28px] text-white leading-tight mb-3">Unlock full detail on every curated opportunity.</h3>
+              <p className="text-[13.5px] leading-relaxed text-white/55 max-w-2xl">Opportunity summaries below are masked. Investors pay a one-time access fee to view full detail — sector, geography, capital sought, structure and stage — on every opportunity in the network.</p>
+            </div>
+            <div className="relative flex flex-col items-start lg:items-end gap-4 shrink-0">
+              <div className="text-left lg:text-right">
+                <p className="text-[10.5px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold mb-1.5">One-time access fee</p>
+                <p className="serif text-[38px] text-white leading-none">{INVESTOR_ACCESS_FEE.amount}</p>
+              </div>
+              <Btn size="lg" onClick={onUnlock}>Unlock full access <Arrow /></Btn>
+            </div>
+          </div>
+        )}
+
+        {curatedOpps.length === 0 ? (
+          <div className="bg-white p-12 rounded-sm border border-[#071224]/5 text-center mb-16">
+            <p className="text-[14px] text-[#071224]/55">No curated opportunities are currently listed. Check back soon.</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
+            {curatedOpps.map((opp, i) => (
+              <OpportunityCard key={opp.id} opp={opp} unlocked={investorUnlocked} onUnlock={onUnlock} />
+            ))}
+          </div>
+        )}
+
         <div className="bg-[#071224] p-8 lg:p-16 rounded-sm grid lg:grid-cols-[1.3fr_1fr] gap-12 items-center">
           <div>
             <h2 className="serif text-[clamp(1.8rem,3.5vw,2.6rem)] leading-tight text-white mb-6">Access is determined by mandate fit, not by request.</h2>
@@ -3878,7 +4092,17 @@ function About({ go }) {
 
       <section className="bg-white">
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
-          <SectionHead eyebrow="Brand architecture" title="M. Lewis Group. ML Gateway. Private Capital Access." sub="A cleaner, more scalable identity — with a parent, a brand and a clear customer-facing descriptor." className="mb-14 max-w-3xl" />
+          <div className="mb-14 max-w-3xl">
+            <div className="flex items-center gap-4 mb-6">
+              <Micro>Brand architecture</Micro>
+            </div>
+            <h2 className="serif text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.15] text-[#071224]">
+              <span className="block">M. LEWIS GROUP</span>
+              <span className="block">ML Gateway</span>
+              <span className="block">Private Capital Access</span>
+            </h2>
+            <p className="mt-5 text-[15.5px] leading-relaxed max-w-2xl text-[#071224]/55">A cleaner, more scalable identity — with a parent, a brand and a clear customer-facing descriptor.</p>
+          </div>
           <div className="grid md:grid-cols-3 gap-6">
             {[
               { tier: 'Parent', name: 'M. LEWIS GROUP', desc: 'The group holding company behind the platform.' },
@@ -3949,6 +4173,48 @@ function App() {
   const [modalContext, setModalContext] = useState('');
   const [engagement, setEngagement] = useState(null);
 
+  /* Investor access modal */
+  const [accessModalOpen, setAccessModalOpen] = useState(false);
+
+  /* Curated opportunities store (localStorage-backed) */
+  const [curatedOpps, setCuratedOpps] = useState(() => {
+    try {
+      const stored = localStorage.getItem('mlg_curated_opps');
+      return stored ? JSON.parse(stored) : SEED_CURATED_OPPORTUNITIES;
+    } catch { return SEED_CURATED_OPPORTUNITIES; }
+  });
+
+  /* Investor unlock flag (localStorage-backed) */
+  const [investorUnlocked, setInvestorUnlocked] = useState(() => {
+    try { return localStorage.getItem('mlg_investor_access') === 'true'; } catch { return false; }
+  });
+
+  const persistCurated = useCallback((list) => {
+    try { localStorage.setItem('mlg_curated_opps', JSON.stringify(list)); } catch {}
+  }, []);
+
+  const addCuratedOpportunity = useCallback((opp) => {
+    setCuratedOpps(prev => {
+      if (prev.some(o => o.id === opp.id)) return prev;
+      const next = [opp, ...prev];
+      persistCurated(next);
+      return next;
+    });
+    // Optional Firebase persistence
+    (async () => {
+      const fb = await firebaseReady;
+      if (fb) {
+        try { await FB.setDoc(FB.doc(fbDb, 'curated_opportunities', opp.id), { ...opp, createdAt: FB.serverTimestamp() }, { merge: true }); }
+        catch(e) { console.warn('[MLG] Could not persist curated opportunity:', e); }
+      }
+    })();
+  }, [persistCurated]);
+
+  const unlockInvestorAccess = useCallback(() => {
+    setInvestorUnlocked(true);
+    try { localStorage.setItem('mlg_investor_access', 'true'); } catch {}
+  }, []);
+
   const go = useCallback((r) => {
     setRoute(r);
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -3960,18 +4226,48 @@ function App() {
     setModalOpen(true);
   }, []);
 
+  const openInvestorAccess = useCallback(() => setAccessModalOpen(true), []);
+
   const handleFitComplete = (answers) => { setFitAnswers(answers); go('businesses'); };
-  const handleEngagementCommenced = (record) => { setEngagement(record); };
+
+  const handleEngagementCommenced = useCallback((record) => {
+    setEngagement(record);
+  }, []);
+
+  /* Auto-list an approved/conditional opportunity as a curated opportunity */
+  const handleListCurated = useCallback((assessment, formData, refCode) => {
+    if (!assessment || !formData) return;
+    if (assessment.decision !== 'approve' && assessment.decision !== 'conditional') return;
+    const year = new Date().getFullYear();
+    const id = 'OPP-' + year + '-' + Math.random().toString(36).slice(2, 6).toUpperCase();
+    const label = (formData.capitalType || 'Capital') + ' for a ' + (formData.sector ? formData.sector.toLowerCase() : 'business');
+    const opp = {
+      id,
+      refCode,
+      sector: formData.sector,
+      country: formData.country,
+      stage: formData.stage,
+      amount: formData.amount,
+      capitalType: formData.capitalType,
+      purposes: formData.purposes || [],
+      tierLabel: assessment.tierLabel,
+      status: assessment.decision === 'approve' ? 'Investment-Ready' : 'Growth-Ready',
+      score: assessment.total,
+      label,
+      listedAt: new Date().toISOString().slice(0, 10),
+    };
+    addCuratedOpportunity(opp);
+  }, [addCuratedOpportunity]);
 
   const view = () => {
     switch (route) {
       case 'fit': return <CapitalFit go={go} onComplete={handleFitComplete} />;
-      case 'businesses': return <BusinessAccess go={go} prefill={fitAnswers} openPurchase={openPurchase} onEngagementCommenced={handleEngagementCommenced} />;
+      case 'businesses': return <BusinessAccess go={go} prefill={fitAnswers} openPurchase={openPurchase} onEngagementCommenced={handleEngagementCommenced} onListCurated={handleListCurated} />;
       case 'diagnostic': return <DiagnosticPage go={go} openPurchase={openPurchase} />;
       case 'investors': return <InvestorAccess go={go} />;
       case 'network': return <Network go={go} />;
       case 'how': return <HowItWorks go={go} openPurchase={openPurchase} />;
-      case 'opportunities': return <Opportunities go={go} />;
+      case 'opportunities': return <Opportunities go={go} curatedOpps={curatedOpps} investorUnlocked={investorUnlocked} onUnlock={openInvestorAccess} />;
       case 'insights': return <Insights go={go} />;
       case 'about': return <About go={go} />;
       default: return <Home go={go} openPurchase={openPurchase} />;
@@ -3985,6 +4281,7 @@ function App() {
       <Footer go={go} />
       <FloatingAssistant />
       <PurchaseModal open={modalOpen} onClose={() => setModalOpen(false)} courtesyAmount={modalCourtesy} context={modalContext} />
+      <InvestorAccessModal open={accessModalOpen} onClose={() => setAccessModalOpen(false)} onUnlocked={unlockInvestorAccess} />
     </div>
   );
 }
