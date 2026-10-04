@@ -42,7 +42,6 @@
   .clause-num { font-variant-numeric: tabular-nums; }
   .paper { box-shadow: 0 10px 40px -10px rgba(7,18,36,0.15), 0 2px 8px rgba(7,18,36,0.04); }
 
-  /* Payment system — added */
   .pay-amount-banner{background:linear-gradient(135deg,#071224 0%,#0F203A 100%);color:#fff;border-radius:14px;padding:22px 24px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden}
   .pay-amount-banner .pab-label{font-size:11px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#F5B722;margin-bottom:6px;position:relative;z-index:2}
   .pay-amount-banner .pab-amount{font-family:'Playfair Display',Georgia,serif;font-size:clamp(2rem,4vw,2.6rem);font-weight:800;color:#F5B722;line-height:1;position:relative;z-index:2}
@@ -433,7 +432,7 @@ const MGMT_TEAM = ['Experienced and complete','Experienced with identified gaps'
 const KEY_PERSON = ['Low — strong bench','Moderate','High — single key person'];
 
 /* ============================================================
-   GEOGRAPHY BANDS — Engagement Fee ranges
+   GEOGRAPHY BANDS — internal use only (not rendered publicly)
    ============================================================ */
 const GEO_BANDS = {
   'Africa':     { min: 1000, max: 2500, label: 'African markets',     short: 'Africa' },
@@ -453,7 +452,7 @@ function getGeographyBand(country) {
 }
 
 /* ============================================================
-   ASSESSMENT ENGINE
+   ASSESSMENT ENGINE — internal
    ============================================================ */
 function assessOpportunity(f) {
   const dims = [];
@@ -578,9 +577,6 @@ function assessOpportunity(f) {
   return { decision, tier, tierLabel, total, maxTotal: 100, pct, dims, critical, positives, conditions: uniqueConditions, flags };
 }
 
-/* ============================================================
-   COMPLEXITY ASSESSMENT — drives the final Engagement Fee
-   ============================================================ */
 function computeComplexity(formData, assessment) {
   const factors = [];
   const amountMap = { 'Under $1m': 4, '$1m – $5m': 9, '$5m – $10m': 14, '$10m – $25m': 19, '$25m – $50m': 22, '$50m+': 25 };
@@ -1291,49 +1287,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                 </div>
 
                 <div className="mb-9">
-                  <p className="text-[10px] tracking-[0.16em] uppercase text-[#071224]/35 font-semibold mb-4">04 · Engagement Fee determination</p>
-
-                  <div className="bg-[#071224] rounded-sm p-6 mb-5">
-                    <div className="flex flex-wrap items-baseline justify-between gap-4 mb-4 pb-4 border-b border-white/10">
-                      <div>
-                        <p className="text-[10px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold mb-1.5">Geography band applied</p>
-                        <p className="text-[14px] font-semibold text-white">{quote.band.label}</p>
-                        <p className="text-[11.5px] text-white/45 mt-0.5">Company jurisdiction: {formData.country}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] tracking-[0.14em] uppercase text-white/40 font-semibold mb-1.5">Band range</p>
-                        <p className="serif text-[16px] text-white">{formatUSD(quote.band.min)} – {formatUSD(quote.band.max)}</p>
-                      </div>
-                    </div>
-                    <p className="text-[11.5px] leading-relaxed text-white/45">
-                      The Engagement Fee is quoted within a jurisdiction-based band. Within the band, the final fee is determined by the system's diagnostic of venture complexity — capital quantum, venture structure, intervention required, governance gaps, management readiness and timeline urgency.
-                    </p>
-                  </div>
-
-                  <div className="border border-[#071224]/8 rounded-sm overflow-hidden mb-5">
-                    <div className="px-5 py-3.5 bg-[#F0F4F8] flex items-center justify-between gap-4">
-                      <span className="text-[11px] tracking-[0.14em] uppercase font-semibold text-[#071224]/60">Complexity assessment</span>
-                      <span className="serif text-[15px] text-[#071224]">{quote.complexity} <span className="text-[11px] text-[#071224]/40">/ 100</span></span>
-                    </div>
-                    <div className="divide-y divide-[#071224]/6">
-                      {quote.factors.map((f, i) => (
-                        <div key={i} className="px-5 py-4">
-                          <div className="flex flex-wrap items-baseline justify-between gap-3 mb-2">
-                            <span className="text-[12.5px] font-semibold text-[#071224]">{f.key}</span>
-                            <span className="text-[11.5px] text-[#071224]/55">{f.value}</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <div className="flex-1 h-1.5 bg-[#071224]/8 rounded-full overflow-hidden">
-                              <div className="h-full rounded-full bar-grow"
-                                style={{ width: `${(f.contribution / f.max) * 100}%`, background: f.contribution / f.max >= 0.66 ? '#B8564F' : f.contribution / f.max >= 0.33 ? '#E0A030' : '#F5B722', animationDelay: `${i * 0.05}s` }} />
-                            </div>
-                            <span className="text-[10.5px] text-[#071224]/45 tabular-nums whitespace-nowrap w-14 text-right">{f.contribution} / {f.max}</span>
-                          </div>
-                          <p className="mt-2 text-[11px] leading-relaxed text-[#071224]/45">{f.note}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <p className="text-[10px] tracking-[0.16em] uppercase text-[#071224]/35 font-semibold mb-4">04 · Engagement Fee</p>
 
                   <div className="grid sm:grid-cols-2 gap-4">
                     <div className="p-5 bg-[#071224] rounded-sm">
@@ -1396,7 +1350,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                   <p className="text-[10px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold mb-2">Your Engagement Fee</p>
                   <p className="serif text-[34px] text-white leading-none mb-2">{formatUSD(quote.fee)}</p>
                   <p className="text-[11px] text-white/40">
-                    Determined from {quote.band.label} band ({formatUSD(quote.band.min)}–{formatUSD(quote.band.max)}) · Complexity {quote.complexity}/100
+                    Quoted for this engagement.
                   </p>
                 </div>
                 <p className="text-[13px] leading-relaxed text-white/55 mb-6">
@@ -1506,14 +1460,13 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                   {[
                     { n: '1', t: 'Engagement', b: 'ML Gateway is engaged to provide the business with access to relevant private capital and a structured pathway to the right investors, through the curated ML Gateway private-capital network.' },
                     { n: '2', t: 'Scope', b: 'The scope comprises opportunity positioning, mandate matching, curated introductions, engagement coordination and process support, as set out in the Engagement Proposal dated ' + today + '.' },
-                    { n: '3', t: 'Engagement Fee', b: 'A fixed Engagement Fee of ' + formatUSD(quote.fee) + ' is payable upon commencement of this engagement. The Engagement Fee has been determined within the ' + quote.band.label + ' geography band (' + formatUSD(quote.band.min) + ' – ' + formatUSD(quote.band.max) + ') based on the system diagnostic of venture complexity (complexity index ' + quote.complexity + '/100). The Engagement Fee covers activation of the platform capital-access and investor engagement process. It is payable upon commencement and is not contingent upon successful capital mobilisation.' },
+                    { n: '3', t: 'Engagement Fee', b: 'A fixed Engagement Fee of ' + formatUSD(quote.fee) + ' is payable upon commencement of this engagement. The Engagement Fee is payable upon commencement and is not contingent upon successful capital mobilisation.' },
                     { n: '4', t: 'Success Fee', b: 'A Success Fee, indicative at 3% of capital successfully mobilised, is payable upon successful capital mobilisation resulting from this engagement. The final Success Fee percentage and basis of calculation are confirmed in the Engagement Proposal and are agreed in writing before any introduction is made.' },
-                    { n: '5', t: 'Fee determination', b: 'The Engagement Fee is quoted based on jurisdiction band and venture complexity. The factors assessed include capital quantum, venture structure, intervention required (conditions to resolve), governance and compliance gaps, management readiness and timeline urgency. The quoted fee is final for this engagement, subject to material change in the opportunity.' },
-                    { n: '6', t: 'Obligations of the business', b: 'The business will provide accurate and complete information, respond to reasonable requests in a timely manner, and notify ML Gateway of any material change to the opportunity, its financial position or its shareholder base.' },
-                    { n: '7', t: 'Conditions', b: assessment.conditions.length > 0 ? 'The following conditions are carried into this engagement and must be evidenced before introductions commence: ' + assessment.conditions.map((c, i) => `(${i + 1}) ${c}`).join(' ') : 'No outstanding conditions were identified at assessment. ML Gateway may identify further diligence items during the engagement.' },
-                    { n: '8', t: 'Confidentiality', b: 'ML Gateway will not disclose your opportunity to any investor without your agreement. Your information is held privately and used only for the purpose of mandate matching and engagement coordination.' },
-                    { n: '9', t: 'No guarantee', b: 'ML Gateway provides capital access through a curated network. Nothing in this engagement constitutes a guarantee that capital will be raised, or an offer of securities or investment advice.' },
-                    { n: '10', t: 'Term and termination', b: 'This engagement commences on payment of the Engagement Fee and continues until capital is mobilised, the parties agree to conclude, or either party terminates on written notice. Termination does not entitle the business to a refund of the Engagement Fee.' },
+                    { n: '5', t: 'Obligations of the business', b: 'The business will provide accurate and complete information, respond to reasonable requests in a timely manner, and notify ML Gateway of any material change to the opportunity, its financial position or its shareholder base.' },
+                    { n: '6', t: 'Conditions', b: assessment.conditions.length > 0 ? 'The following conditions are carried into this engagement and must be evidenced before introductions commence: ' + assessment.conditions.map((c, i) => `(${i + 1}) ${c}`).join(' ') : 'No outstanding conditions were identified at assessment. ML Gateway may identify further diligence items during the engagement.' },
+                    { n: '7', t: 'Confidentiality', b: 'ML Gateway will not disclose your opportunity to any investor without your agreement. Your information is held privately and used only for the purpose of mandate matching and engagement coordination.' },
+                    { n: '8', t: 'No guarantee', b: 'ML Gateway provides capital access through a curated network. Nothing in this engagement constitutes a guarantee that capital will be raised, or an offer of securities or investment advice.' },
+                    { n: '9', t: 'Term and termination', b: 'This engagement commences on payment of the Engagement Fee and continues until capital is mobilised, the parties agree to conclude, or either party terminates on written notice. Termination does not entitle the business to a refund of the Engagement Fee.' },
                   ].map((c) => (
                     <div key={c.n} className="flex gap-5">
                       <span className="serif text-[15px] text-[#F5B722] font-bold w-6 shrink-0 clause-num pt-0.5">{c.n}.</span>
@@ -1639,14 +1592,6 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                     <span className="text-[13px] text-white font-medium text-right">{assessment.tierLabel}</span>
                   </div>
                   <div className="flex justify-between gap-6 py-4 border-t border-white/10">
-                    <span className="text-[13px] text-white/55">Geography band</span>
-                    <span className="text-[13px] text-white font-medium text-right">{quote.band.label} · {formatUSD(quote.band.min)} – {formatUSD(quote.band.max)}</span>
-                  </div>
-                  <div className="flex justify-between gap-6 py-4 border-t border-white/10">
-                    <span className="text-[13px] text-white/55">Complexity index</span>
-                    <span className="text-[13px] text-white font-medium text-right">{quote.complexity} / 100</span>
-                  </div>
-                  <div className="flex justify-between gap-6 py-4 border-t border-white/10">
                     <span className="text-[13px] text-white/55">Engagement Fee</span>
                     <span className="text-[15px] text-white font-semibold">{formatUSD(quote.fee)}</span>
                   </div>
@@ -1667,13 +1612,6 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                     <span className="text-[12px] text-white/70 font-medium">3% of capital raised</span>
                   </div>
                 </div>
-              </div>
-
-              <div className="mb-6 p-5 bg-white rounded-sm border border-[#071224]/8">
-                <p className="text-[11px] tracking-[0.14em] uppercase text-[#071224]/50 font-semibold mb-3">How your fee was determined</p>
-                <p className="text-[12.5px] leading-relaxed text-[#071224]/55">
-                  Your company is registered in <span className="font-medium text-[#071224]">{formData.country}</span>, which places it in the <span className="font-medium text-[#071224]">{quote.band.label}</span> band ({formatUSD(quote.band.min)} – {formatUSD(quote.band.max)}). Within that band, the system diagnostic assessed venture complexity at <span className="font-medium text-[#071224]">{quote.complexity}/100</span> based on capital quantum, venture structure, intervention required, governance gaps, management readiness and timeline urgency — producing your quoted fee of <span className="font-medium text-[#071224]">{formatUSD(quote.fee)}</span>.
-                </p>
               </div>
 
               {!applyCredit && (
@@ -1781,8 +1719,6 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                   {[
                     ['Business', formData.company],
                     ['Country', formData.country],
-                    ['Geography band', quote.band.label + ' · ' + formatUSD(quote.band.min) + ' – ' + formatUSD(quote.band.max)],
-                    ['Complexity index', quote.complexity + ' / 100'],
                     ['Engagement tier', assessment.tierLabel],
                     ['Engagement Fee', formatUSD(quote.fee)],
                     ...(credit > 0 ? [['Courtesy credit applied', '− ' + formatUSD(credit)]] : []),
@@ -2169,7 +2105,6 @@ function TermsPanel({ quote }) {
     <div className="p-6 lg:p-8 rounded-sm bg-[#071224] text-white">
       <Micro light className="block mb-7">Engagement structure</Micro>
       <div className="space-y-6">
-        {/* Added: Submission & Assessment Fee */}
         <div>
           <div className="flex items-baseline justify-between gap-4 mb-3">
             <p className="text-[14.5px] font-semibold text-white">Submission &amp; Assessment Fee</p>
@@ -2187,31 +2122,14 @@ function TermsPanel({ quote }) {
           {quote ? (
             <>
               <p className="serif text-[28px] text-[#F5B722] mb-2 leading-none">{formatUSD(quote.fee)}</p>
-              <p className="text-[11px] text-white/40 mb-2">
-                {quote.band.label} band · {formatUSD(quote.band.min)} – {formatUSD(quote.band.max)} · Complexity {quote.complexity}/100
-              </p>
             </>
           ) : (
             <p className="text-[12.5px] leading-relaxed text-white/50 mb-3">
-              Quoted by jurisdiction and system diagnostic. Ranges below — the exact fee is determined by the venture complexity assessment.
+              Quoted on a per-engagement basis, within a jurisdiction band and calibrated to the assessed complexity of the venture. Your specific quote is issued in your Engagement Proposal.
             </p>
           )}
           <p className="text-[12.5px] leading-relaxed text-white/50">A fixed fee payable upon commencement of the engagement. Covers activation of the platform capital-access and investor engagement process.</p>
         </div>
-
-        {!quote && (
-          <div className="pt-5 border-t border-white/10">
-            <p className="text-[10.5px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold mb-3">Engagement Fee bands</p>
-            <div className="space-y-2.5">
-              {Object.entries(GEO_BANDS).map(([k, b]) => (
-                <div key={k} className="flex justify-between gap-4 text-[12px] border-b border-white/8 pb-2">
-                  <span className="text-white/55">{b.label}</span>
-                  <span className="text-[#F5B722] font-semibold">{formatUSD(b.min)} – {formatUSD(b.max)}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="pt-6 border-t border-white/10">
           <div className="flex items-baseline justify-between gap-4 mb-3">
@@ -2220,11 +2138,6 @@ function TermsPanel({ quote }) {
           </div>
           <p className="text-[12.5px] leading-relaxed text-white/50">A fee payable upon successful capital mobilisation resulting from the private capital platform engagement. Indicative at 3% of capital raised.</p>
         </div>
-      </div>
-
-      <div className="mt-7 pt-6 border-t border-white/10">
-        <p className="text-[10.5px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold mb-2.5">Fee determination</p>
-        <p className="text-[11.5px] leading-relaxed text-white/50">The Engagement Fee is quoted within a jurisdiction band, and the final amount is determined by the system diagnostic of venture complexity — capital quantum, venture structure, intervention required, governance gaps, management readiness and timeline urgency.</p>
       </div>
 
       <div className="mt-6 pt-6 border-t border-white/10">
@@ -2312,6 +2225,31 @@ function Home({ go, openPurchase }) {
         </div>
       </section>
 
+      <section className="bg-[#F0F4F8]">
+        <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
+            <SectionHead
+              eyebrow="Fee structure"
+              title="Fees calibrated to jurisdiction and complexity."
+              sub="The Engagement Fee is quoted on a per-engagement basis, within a jurisdiction band and calibrated to the assessed complexity of the venture. The specific fee quote for your opportunity is issued in your Engagement Proposal, if and when your opportunity is approved."
+            />
+            <div className="grid grid-cols-2 gap-x-8 gap-y-9 lg:pt-4">
+              {[
+                ['Submission & Assessment Fee', 'Payable on submission. Non-refundable.'],
+                ['Engagement Fee', 'Payable on commencement. Quoted in your Engagement Proposal.'],
+                ['Success Fee', 'Payable only on successful capital mobilisation.'],
+                ['Diagnostic courtesy credit', 'Applied toward the Engagement Fee where applicable.'],
+              ].map(([k, v]) => (
+                <div key={k} className="border-l-2 border-[#F5B722]/30 pl-4 hover:border-[#F5B722] transition-colors">
+                  <Micro className="block mb-2.5">{k}</Micro>
+                  <p className="text-[14px] text-[#071224]/70 leading-snug">{v}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="bg-white">
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
           <div className="grid lg:grid-cols-[1fr_1.15fr] gap-12 lg:gap-20 items-center">
@@ -2381,7 +2319,7 @@ function Home({ go, openPurchase }) {
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
           <div className="grid lg:grid-cols-[1fr_1.15fr] gap-12 lg:gap-20 items-center">
             <div>
-              <SectionHead eyebrow="Automated screening" title="Institutional-grade assessment, returned instantly." sub="Our system evaluates every opportunity against five weighted dimensions — legal foundation, financial substance, capital raise readiness, governance and investment readiness — and returns a clear decision with full rationale." />
+              <SectionHead eyebrow="Automated screening" title="Institutional-grade assessment, returned instantly." sub="Our system evaluates every opportunity against a consistent rule-based set of criteria and returns a clear decision with full rationale — no silent decline, no waiting." />
               <div className="mt-10 flex flex-wrap gap-3">
                 <Btn size="lg" onClick={() => go('businesses')}>Start your assessment <Arrow /></Btn>
                 <Btn size="lg" variant="ghost" onClick={() => go('fit')}>Find your pathway first</Btn>
@@ -2389,15 +2327,21 @@ function Home({ go, openPurchase }) {
             </div>
             <div className="bg-[#071224] p-8 lg:p-10 rounded-sm border border-[#F5B722]/20 glow">
               <Micro light className="block mb-8">Decision Engine</Micro>
-              <div className="space-y-4">
-                {[{ label: 'APPROVE', sub: 'Investment-Ready', color: '#F5B722', pct: 88 }, { label: 'PROCEED WITH CONDITIONS', sub: 'Growth-Ready', color: '#E0A030', pct: 68 }, { label: 'DECLINE', sub: 'Not Yet Ready', color: '#B8564F', pct: 42 }].map((d, i) => (
-                  <div key={i} className="p-4 rounded-sm border border-white/10 bg-white/[0.02]">
-                    <div className="flex items-center justify-between mb-3"><span className="text-[11px] font-bold tracking-[0.08em]" style={{ color: d.color }}>{d.label}</span><span className="text-[10.5px] text-white/40">{d.sub}</span></div>
-                    <div className="h-1 bg-white/10 rounded-full overflow-hidden"><div className="h-full rounded-full bar-grow" style={{ width: `${d.pct}%`, background: d.color }} /></div>
-                  </div>
-                ))}
+              <div className="space-y-3">
+                <div className="p-5 rounded-sm border border-white/10 bg-white/[0.02]">
+                  <p className="text-[11px] font-bold tracking-[0.08em] text-[#F5B722] mb-2">APPROVE</p>
+                  <p className="text-[12.5px] leading-relaxed text-white/55">Your opportunity meets the platform's criteria. It is moved directly into the engagement pathway.</p>
+                </div>
+                <div className="p-5 rounded-sm border border-white/10 bg-white/[0.02]">
+                  <p className="text-[11px] font-bold tracking-[0.08em] text-[#E0A030] mb-2">PROCEED WITH CONDITIONS</p>
+                  <p className="text-[12.5px] leading-relaxed text-white/55">Your opportunity can proceed, subject to specific conditions that are carried into the engagement.</p>
+                </div>
+                <div className="p-5 rounded-sm border border-white/10 bg-white/[0.02]">
+                  <p className="text-[11px] font-bold tracking-[0.08em] text-[#B8564F] mb-2">DECLINE</p>
+                  <p className="text-[12.5px] leading-relaxed text-white/55">The opportunity does not currently meet the criteria. You are welcome to address the gaps and reapply.</p>
+                </div>
               </div>
-              <p className="mt-6 text-[11.5px] leading-relaxed text-white/40">Scored on five weighted dimensions. Critical gates force decline regardless of total score.</p>
+              <p className="mt-6 text-[11.5px] leading-relaxed text-white/40">Every opportunity is assessed consistently, against the same criteria.</p>
             </div>
           </div>
         </div>
@@ -2855,21 +2799,13 @@ function EngagementPathwayPanel({ assessment, formData }) {
           </div>
           <div className="p-4 rounded-sm bg-white/[0.04] border border-[#F5B722]/30">
             <p className="text-[10.5px] tracking-[0.12em] uppercase text-[#F5B722] font-semibold mb-2">Your Engagement Fee quote</p>
-            <p className="serif text-[24px] text-white leading-none mb-1">{formatUSD(quote.fee)}</p>
-            <p className="text-[10.5px] text-white/45">{quote.band.label} · Complexity {quote.complexity}/100</p>
+            <p className="serif text-[24px] text-white leading-none">{formatUSD(quote.fee)}</p>
           </div>
           <div className="p-4 rounded-sm bg-white/[0.04] border border-white/10">
             <p className="text-[10.5px] tracking-[0.12em] uppercase text-white/40 font-semibold mb-2">Success Fee</p>
             <p className="serif text-[24px] text-white leading-none">3%</p>
             <p className="text-[10.5px] text-white/40 mt-1.5">On mobilisation</p>
           </div>
-        </div>
-
-        <div className="mb-5 p-5 rounded-sm bg-white/[0.03] border border-white/10">
-          <p className="text-[10.5px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold mb-2">Fee determination preview</p>
-          <p className="text-[12px] leading-relaxed text-white/50">
-            Your company is registered in <span className="text-white font-medium">{formData.country}</span> ({quote.band.label} band: {formatUSD(quote.band.min)} – {formatUSD(quote.band.max)}). The system diagnostic assessed complexity at {quote.complexity}/100 across capital quantum, venture structure, intervention required, governance gaps, management readiness and timeline. Full breakdown provided in the Engagement Proposal.
-          </p>
         </div>
 
         <div className="flex flex-wrap gap-3 mb-5">
@@ -3059,21 +2995,9 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
             <div className="bg-[#071224] p-6 lg:p-8 rounded-sm text-white">
               <Micro light className="block mb-6">How the assessment works</Micro>
               <div className="space-y-5 text-[12.5px] leading-relaxed text-white/55">
-                <p>Each opportunity is scored across five weighted dimensions totalling 100 points:</p>
-                <div className="space-y-2.5">
-                  {[['Legal & Entity Foundation','15'],['Financial Substance','25'],['Capital Raise Readiness','20'],['Governance & Compliance','15'],['Investment Readiness','25']].map(([k, v]) => (
-                    <div key={k} className="flex justify-between gap-3 border-b border-white/8 pb-2">
-                      <span>{k}</span>
-                      <span className="text-[#F5B722] font-semibold">{v}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="pt-3 space-y-2 text-white/45">
-                  <p><span className="text-[#F5B722] font-semibold">78+</span> — Approved for the network</p>
-                  <p><span className="text-[#E0A030] font-semibold">58–77</span> — Proceed with conditions</p>
-                  <p><span className="text-[#B8564F] font-semibold">Below 58</span> — Not yet ready</p>
-                  <p className="pt-2 text-white/40">Critical gate failures force decline regardless of total score.</p>
-                </div>
+                <p>Every opportunity is assessed against the same criteria, applied consistently. Nothing is left to subjective judgment at the first stage.</p>
+                <p>You receive a clear decision with reasoning. If you are declined, you are welcome to address the gaps and reapply — your submission will be re-screened.</p>
+                <p className="text-white/40">Specific scoring criteria are internal to the platform.</p>
               </div>
             </div>
 
@@ -3208,7 +3132,7 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
             </button>
             <Micro className="block mb-6">Step 5 — Submission &amp; Assessment Fee</Micro>
             <h1 className="serif text-[clamp(2rem,4.5vw,3rem)] leading-[1.1] text-[#071224] mb-6">Pay the Submission &amp; Assessment Fee.</h1>
-            <p className="text-[15.5px] leading-relaxed text-[#071224]/55 mb-10 max-w-2xl">This non-refundable fee activates the platform assessment. Once your payment is recorded, the system screens your opportunity across five weighted dimensions and returns an immediate decision.</p>
+            <p className="text-[15.5px] leading-relaxed text-[#071224]/55 mb-10 max-w-2xl">This non-refundable fee activates the platform assessment. Once your payment is recorded, the system screens your opportunity against a consistent set of criteria and returns an immediate decision.</p>
             <div className="bg-white rounded-sm border border-[#071224]/8 p-6 lg:p-8">
               <PaymentFlow
                 amount={submissionFee.amount}
@@ -3257,7 +3181,7 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
                 <>
                   <Field label="Company / group name" required><TextInput value={f.company} onChange={v => set('company', v)} placeholder="Registered or trading name" /></Field>
                   <div className="grid sm:grid-cols-2 gap-7">
-                    <Field label="Country of registration" required hint="Determines submission fee and engagement band"><Select value={f.country} onChange={v => set('country', v)} options={COUNTRIES} placeholder="Select country" /></Field>
+                    <Field label="Country of registration" required hint="Determines submission fee"><Select value={f.country} onChange={v => set('country', v)} options={COUNTRIES} placeholder="Select country" /></Field>
                     <Field label="Sector" required><Select value={f.sector} onChange={v => set('sector', v)} options={SECTORS} placeholder="Select sector" /></Field>
                   </div>
                   <div className="grid sm:grid-cols-2 gap-7">
@@ -3349,20 +3273,22 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
           </div>
           <aside className="space-y-6 lg:pt-12">
             <div className="bg-[#071224] p-6 lg:p-8 rounded-sm text-white">
-              <Micro light className="block mb-6">Automated assessment</Micro>
-              <p className="text-[13px] leading-relaxed text-white/55 mb-6">Every opportunity is scored across five weighted dimensions. Critical gate failures force decline regardless of total score.</p>
-              <div className="space-y-2.5">
-                {[['Legal & Entity Foundation','15'],['Financial Substance','25'],['Capital Raise Readiness','20'],['Governance & Compliance','15'],['Investment Readiness','25']].map(([k, v]) => (
-                  <div key={k} className="flex justify-between gap-3 border-b border-white/8 pb-2">
-                    <span className="text-[12.5px] text-white/60">{k}</span>
-                    <span className="text-[12.5px] text-[#F5B722] font-semibold">{v}</span>
+              <Micro light className="block mb-6">How the assessment works</Micro>
+              <p className="text-[13px] leading-relaxed text-white/55 mb-6">Every opportunity is assessed against the same criteria, applied consistently. You receive a clear decision with full reasoning — no silent decline, no waiting.</p>
+              <div className="space-y-4">
+                {[
+                  { t: 'Immediate decision', d: 'APPROVE, PROCEED WITH CONDITIONS, or DECLINE.' },
+                  { t: 'Full rationale', d: 'You see exactly why the decision was reached.' },
+                  { t: 'Pathway if approved', d: 'Approved opportunities move into the engagement pathway.' },
+                ].map((s, i) => (
+                  <div key={i} className="flex gap-3">
+                    <span className="serif text-[13px] text-[#F5B722] font-bold w-5 shrink-0 pt-0.5">{String(i + 1).padStart(2, '0')}</span>
+                    <div>
+                      <p className="text-[13px] font-semibold text-white mb-1">{s.t}</p>
+                      <p className="text-[12px] leading-relaxed text-white/45">{s.d}</p>
+                    </div>
                   </div>
                 ))}
-              </div>
-              <div className="mt-6 pt-5 border-t border-white/10 space-y-2 text-[12px]">
-                <p className="text-white/45"><span className="text-[#F5B722] font-semibold">78+</span> — Approved → Engagement</p>
-                <p className="text-white/45"><span className="text-[#E0A030] font-semibold">58–77</span> — Conditional → Engagement</p>
-                <p className="text-white/45"><span className="text-[#B8564F] font-semibold">Below 58</span> — Declined</p>
               </div>
             </div>
             <div className="bg-white p-6 lg:p-8 rounded-sm border border-[#F5B722]/40">
@@ -3650,8 +3576,8 @@ function Network({ go }) {
 function HowItWorks({ go, openPurchase }) {
   const steps = [
     { n: '01', t: 'Submit', d: 'You complete a structured assessment — identity, financials, capital raise, governance and investment readiness.', side: 'Roughly 5 minutes.' },
-    { n: '02', t: 'Screen', d: 'Our system scores the opportunity across five weighted dimensions and returns an immediate APPROVE, PROCEED WITH CONDITIONS or DECLINE decision with full rationale.', side: 'Instant.' },
-    { n: '03', t: 'Engage', d: 'APPROVE and PROCEED WITH CONDITIONS decisions automatically generate an Engagement Proposal and Letter, with a fee quote determined by jurisdiction band and system-diagnosed complexity.', side: 'Automatic.' },
+    { n: '02', t: 'Screen', d: 'Our system assesses the opportunity against the platform criteria and returns an immediate APPROVE, PROCEED WITH CONDITIONS or DECLINE decision with full rationale.', side: 'Instant.' },
+    { n: '03', t: 'Engage', d: 'APPROVE and PROCEED WITH CONDITIONS decisions automatically generate an Engagement Proposal and Letter, with a fee quote issued for your engagement.', side: 'Automatic.' },
     { n: '04', t: 'Mobilise', d: 'On payment of the Engagement Fee, matching against live investor mandates begins. Curated introductions follow, and capital progresses toward close.', side: 'Party-led.' },
   ];
   return (
@@ -3674,66 +3600,35 @@ function HowItWorks({ go, openPurchase }) {
         </div>
 
         <div className="mb-20">
-          <SectionHead eyebrow="The Engagement Fee" title="Quoted by jurisdiction, determined by complexity." sub="The Engagement Fee is quoted within a jurisdiction band and calibrated to the system's diagnostic of venture complexity. It is payable upon commencement and is not contingent upon successful capital mobilisation." className="mb-10 max-w-3xl" />
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-            {['Africa', 'UAE', 'USA', 'Europe/UK'].map((key) => {
-              const b = GEO_BANDS[key];
-              const accent = key === 'Africa';
-              return (
-                <div key={key} className={`p-6 lg:p-7 rounded-sm border transition-all duration-300 ${accent ? 'bg-[#071224] border-[#F5B722]/30 shadow-[0_0_40px_rgba(245,183,34,0.12)]' : 'bg-white border-[#071224]/8'}`}>
-                  <Micro light={accent} className="block mb-5">{b.label}</Micro>
-                  <p className={`serif text-[22px] leading-none mb-3 ${accent ? 'text-[#F5B722]' : 'text-[#071224]'}`}>{formatUSD(b.min)}</p>
-                  <p className={`serif text-[22px] leading-none mb-4 ${accent ? 'text-white/70' : 'text-[#071224]/60'}`}>– {formatUSD(b.max)}</p>
-                  <p className={`text-[11px] leading-relaxed ${accent ? 'text-white/45' : 'text-[#071224]/50'}`}>
-                    Businesses registered in {b.label.toLowerCase()}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
+          <SectionHead eyebrow="The Engagement Fee" title="Quoted per engagement. Issued in your Engagement Proposal." sub="The Engagement Fee is quoted on a per-engagement basis, within a jurisdiction band and calibrated to the assessed complexity of the venture. It is payable upon commencement and is not contingent upon successful capital mobilisation." className="mb-10 max-w-3xl" />
           <div className="bg-white rounded-sm border border-[#071224]/8 p-6 lg:p-8">
-            <div className="grid md:grid-cols-3 gap-8">
+            <div className="grid md:grid-cols-2 gap-8">
               <div>
-                <Micro className="block mb-4">Complexity factors</Micro>
-                <ul className="space-y-2 text-[12.5px] text-[#071224]/60">
-                  {['Capital quantum', 'Venture structure', 'Intervention required', 'Governance gaps', 'Management readiness', 'Timeline urgency'].map((f, i) => (
-                    <li key={i} className="flex items-start gap-2.5">
-                      <span className="serif text-[11px] text-[#F5B722] font-bold pt-0.5">{String(i + 1).padStart(2, '0')}</span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
+                <Micro className="block mb-4">Engagement Fee</Micro>
+                <p className="text-[13px] leading-relaxed text-[#071224]/60 mb-3">Payable upon commencement. Quoted in your Engagement Proposal on a per-engagement basis, calibrated to your jurisdiction and the assessed complexity of your venture.</p>
               </div>
               <div>
                 <Micro className="block mb-4">Success Fee</Micro>
-                <p className="serif text-[28px] text-[#071224] mb-3">3% <span className="text-[14px] text-[#071224]/40">indicative</span></p>
-                <p className="text-[13px] leading-relaxed text-[#071224]/55">Payable only upon successful capital mobilisation. Final percentage confirmed in the Engagement Letter.</p>
+                <p className="text-[13px] leading-relaxed text-[#071224]/60 mb-3">Indicative at 3% of capital successfully mobilised. Payable on mobilisation only. Final percentage confirmed in the Engagement Letter.</p>
               </div>
-              <div>
-                <Micro className="block mb-4">Diagnostic courtesy credit</Micro>
-                <p className="serif text-[28px] text-[#071224] mb-3">Up to $40</p>
-                <p className="text-[13px] leading-relaxed text-[#071224]/55">If you have purchased the Enterprise Diagnostic, your courtesy credit can be applied toward the Engagement Fee at payment.</p>
-              </div>
+            </div>
+            <div className="mt-6 pt-6 border-t border-[#071224]/8">
+              <Micro className="block mb-4">Diagnostic courtesy credit</Micro>
+              <p className="text-[13px] leading-relaxed text-[#071224]/60">If you have purchased the Enterprise Diagnostic, your courtesy credit (up to $40) can be applied toward the Engagement Fee at payment.</p>
             </div>
           </div>
         </div>
 
         <div className="mb-20">
-          <SectionHead eyebrow="The assessment" title="What the system evaluates." sub="Every opportunity is scored against the same criteria, applied consistently. Nothing is left to subjective judgment at the first stage." className="mb-10 max-w-3xl" />
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <SectionHead eyebrow="The assessment" title="A consistent, rule-based first-stage assessment." sub="Every opportunity is assessed against the same criteria, applied consistently. You receive a clear decision with reasoning — no silent decline, no waiting." className="mb-10 max-w-3xl" />
+          <div className="grid md:grid-cols-3 gap-5">
             {[
-              { t: 'Legal & Entity Foundation', p: '15 pts', d: 'Legal structure, trading history, tax compliance, regulatory licences.' },
-              { t: 'Financial Substance', p: '25 pts', d: 'Revenue base, trajectory, EBITDA position, financial statements, history.' },
-              { t: 'Capital Raise Readiness', p: '20 pts', d: 'Use of funds, cap table, existing shareholders, timeline.' },
-              { t: 'Governance & Compliance', p: '15 pts', d: 'Board structure, shareholder agreement, KYC / AML readiness.' },
-              { t: 'Investment Readiness', p: '25 pts', d: 'Pitch deck, financial model, due diligence pack, management team, key person risk.' },
-              { t: 'Critical Gates', p: 'Instant decline', d: 'Under 1 year of trading, material tax non-compliance, undefined use of funds, missing required licences.' },
+              { t: 'Structured submission', d: 'You complete a structured form covering identity, financials, capital raise and governance.' },
+              { t: 'Immediate decision', d: 'The platform returns APPROVE, PROCEED WITH CONDITIONS, or DECLINE with full rationale.' },
+              { t: 'Pathway if approved', d: 'Approved opportunities move into the engagement pathway with a formal proposal and letter.' },
             ].map((d, i) => (
-              <div key={i} className="bg-white p-7 rounded-sm border border-[#071224]/5 hover:shadow-lg transition-shadow">
-                <div className="flex items-baseline justify-between mb-5">
-                  <span className="serif text-[13px] text-[#F5B722] font-bold">{String(i + 1).padStart(2, '0')}</span>
-                  <span className="text-[11px] tracking-[0.1em] uppercase font-semibold text-[#F5B722] bg-[#F5B722]/10 px-2.5 py-1 rounded-full">{d.p}</span>
-                </div>
+              <div key={i} className="bg-white p-7 rounded-sm border border-[#071224]/5">
+                <span className="serif text-[13px] text-[#F5B722] font-bold block mb-4">{String(i + 1).padStart(2, '0')}</span>
                 <h3 className="serif text-[20px] text-[#071224] mb-2.5">{d.t}</h3>
                 <p className="text-[13px] leading-relaxed text-[#071224]/55">{d.d}</p>
               </div>
@@ -3822,12 +3717,12 @@ function HowItWorks({ go, openPurchase }) {
 function Opportunities({ go }) {
   const [hovered, setHovered] = useState(null);
   const sample = [
-    { sector: 'Financial services', geo: 'East Africa', stage: 'Profitable & scaling', size: '$5m – $10m', type: 'Growth equity', label: 'Expansion capital for a regional lender', status: 'Investment-Ready', engaged: true },
-    { sector: 'Agriculture & agribusiness', geo: 'Southern Africa', stage: 'Revenue-generating', size: '$1m – $5m', type: 'Growth capital', label: 'Working capital for an export agri-processor', status: 'Investment-Ready', engaged: true },
-    { sector: 'Energy & renewables', geo: 'West Africa', stage: 'Revenue-generating', size: '$10m – $25m', type: 'Project capital', label: 'C&I solar platform, multi-site rollout', status: 'Investment-Grade', engaged: true },
-    { sector: 'Logistics & transport', geo: 'Pan-African', stage: 'Profitable & scaling', size: '$25m – $50m', type: 'Acquisition capital', label: 'Buy-and-build in cold-chain logistics', status: 'Investment-Grade', engaged: true },
-    { sector: 'Healthcare & life sciences', geo: 'North Africa', stage: 'Revenue-generating', size: '$5m – $10m', type: 'Growth equity', label: 'Diagnostics network expansion', status: 'Investment-Ready', engaged: true },
-    { sector: 'Technology & software', geo: 'Africa', stage: 'Revenue-generating', size: '$1m – $5m', type: 'Growth capital', label: 'B2B payments infrastructure', status: 'Conditional', engaged: false },
+    { sector: 'Financial services', geo: 'East Africa', stage: 'Profitable & scaling', size: '$5m – $10m', type: 'Growth equity', label: 'Expansion capital for a regional lender', status: 'Investment-Ready' },
+    { sector: 'Agriculture & agribusiness', geo: 'Southern Africa', stage: 'Revenue-generating', size: '$1m – $5m', type: 'Growth capital', label: 'Working capital for an export agri-processor', status: 'Investment-Ready' },
+    { sector: 'Energy & renewables', geo: 'West Africa', stage: 'Revenue-generating', size: '$10m – $25m', type: 'Project capital', label: 'C&I solar platform, multi-site rollout', status: 'Investment-Grade' },
+    { sector: 'Logistics & transport', geo: 'Pan-African', stage: 'Profitable & scaling', size: '$25m – $50m', type: 'Acquisition capital', label: 'Buy-and-build in cold-chain logistics', status: 'Investment-Grade' },
+    { sector: 'Healthcare & life sciences', geo: 'North Africa', stage: 'Revenue-generating', size: '$5m – $10m', type: 'Growth equity', label: 'Diagnostics network expansion', status: 'Investment-Ready' },
+    { sector: 'Technology & software', geo: 'Africa', stage: 'Revenue-generating', size: '$1m – $5m', type: 'Growth capital', label: 'B2B payments infrastructure', status: 'Conditional' },
   ];
   return (
     <div className="fadein bg-[#F0F4F8]">
@@ -3842,13 +3737,7 @@ function Opportunities({ go }) {
                   <Micro className="truncate">{o.sector}</Micro>
                   <span className={`text-[9.5px] font-bold tracking-[0.08em] uppercase px-2.5 py-1 rounded-full whitespace-nowrap shrink-0 ${o.status === 'Investment-Grade' ? 'bg-[#F5B722] text-[#071224]' : o.status === 'Investment-Ready' ? 'bg-[#F5B722]/15 text-[#B8860B] border border-[#F5B722]/30' : 'bg-[#E0A030]/15 text-[#A87820] border border-[#E0A030]/30'}`}>{o.status}</span>
                 </div>
-                <h3 className="serif text-[22px] leading-tight text-[#071224] mb-5 group-hover:text-[#F5B722] transition-colors">{o.label}</h3>
-                {o.engaged && (
-                  <div className="inline-flex items-center gap-2 text-[10px] tracking-[0.12em] uppercase font-semibold text-[#F5B722] bg-[#F5B722]/10 px-2.5 py-1 rounded-full mb-5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#F5B722] pulse-soft"></span>
-                    Engagement active
-                  </div>
-                )}
+                <h3 className="serif text-[22px] leading-tight text-[#071224] mb-6 group-hover:text-[#F5B722] transition-colors">{o.label}</h3>
                 <div className="space-y-3 mb-8">
                   {[['Geography', o.geo], ['Stage', o.stage], ['Capital sought', o.size], ['Structure', o.type]].map(([k, v]) => (
                     <div key={k} className="flex justify-between gap-4">
@@ -3986,9 +3875,9 @@ function About({ go }) {
           <SectionHead eyebrow="Brand architecture" title="M. Lewis Group. ML Gateway. Private Capital Access." sub="A cleaner, more scalable identity — with a parent, a brand and a clear customer-facing descriptor." className="mb-14 max-w-3xl" />
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              { tier: 'Parent', name: 'M. LEWIS GROUP', desc: 'The group holding company behind the platform.', muted: true },
+              { tier: 'Parent', name: 'M. LEWIS GROUP', desc: 'The group holding company behind the platform.' },
               { tier: 'Brand', name: 'ML Gateway', desc: 'The customer-facing private-capital access platform.', accent: true },
-              { tier: 'Descriptor', name: 'Private Capital Access', desc: 'What the brand does, in three words.', muted: true },
+              { tier: 'Descriptor', name: 'Private Capital Access', desc: 'What the brand does, in three words.' },
             ].map((b, i) => (
               <div key={i} className={`p-8 lg:p-10 rounded-sm border transition-all duration-300 ${b.accent ? 'bg-[#071224] border-[#F5B722]/30 shadow-[0_0_40px_rgba(245,183,34,0.12)]' : 'bg-[#F0F4F8] border-[#071224]/8'}`}>
                 <Micro light={b.accent} className="block mb-6">{b.tier}</Micro>
