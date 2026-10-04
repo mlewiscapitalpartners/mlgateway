@@ -196,7 +196,7 @@ const { useState, useMemo, useEffect, useCallback, useRef } = React;
 /* ============================================================
    PAYMENT CONFIG
    ============================================================ */
-const ADMIN_WHATSAPP = '260762499581';
+const ADMIN_WHATSAPP = '260768526191';
 const VERIFY_BASE_URL = "https://mlgateway.com/verify";
 
 const FIREBASE_CONFIG = {
@@ -320,13 +320,13 @@ const PAYMENT_METHODS = {
       'Save the transaction hash (TxID) from your wallet',
       'Return here and paste the TxID as your reference'
     ],
-    note: 'Crypto is offered for international applicants. Because crypto rates fluctuate, please send the equivalent of the amount shown at the time of transfer. Any excess will be credited toward your engagement.'
+    note: 'Crypto is offered for international applicants. Because crypto rates fluctuate, please send the equivalent of the amount shown at the time of transfer.'
   }
 };
 
 const SUBMISSION_FEE = {
   zambia: { amount: 'K120', currency: 'ZMW', label: 'Zambia' },
-  international: { amount: 'US$10', currency: 'USD', label: 'International' }
+  international: { amount: 'US$10 USD', currency: 'USD', label: 'International' }
 };
 function getSubmissionFee(country) {
   return (country || '').trim() === 'Zambia' ? SUBMISSION_FEE.zambia : SUBMISSION_FEE.international;
@@ -365,10 +365,10 @@ async function generateReceiptNumber(prefix){
         tx.set(counterRef, { value: next, updatedAt: FB.serverTimestamp() }, { merge: true });
         return next;
       });
-      return pfx + '-' + year + '-' + String(result).padStart(6, '0');
+      return pfx + '-' + year + '-' + String(result).padStart(5, '0');
     } catch(e) { console.warn('[MLG] Receipt counter failed:', e); }
   }
-  return pfx + '-' + year + '-' + String(Math.floor(Math.random() * 900000) + 100000);
+  return pfx + '-' + year + '-' + String(Math.floor(Math.random() * 90000) + 10000);
 }
 
 /* ============================================================
@@ -432,7 +432,7 @@ const MGMT_TEAM = ['Experienced and complete','Experienced with identified gaps'
 const KEY_PERSON = ['Low — strong bench','Moderate','High — single key person'];
 
 /* ============================================================
-   GEOGRAPHY BANDS — internal use only (not rendered publicly)
+   GEOGRAPHY BANDS — internal use only
    ============================================================ */
 const GEO_BANDS = {
   'Africa':     { min: 1000, max: 2500, label: 'African markets',     short: 'Africa' },
@@ -619,7 +619,7 @@ function computeEngagementFee(formData, assessment) {
   return { fee: clamped, band, geoKey, complexity: complexity.score, factors: complexity.factors };
 }
 
-function formatUSD(n) { return 'USD ' + n.toLocaleString('en-US'); }
+function formatUSD(n) { return 'US$' + n.toLocaleString('en-US') + ' USD'; }
 
 /* ============================================================
    ENTERPRISE DIAGNOSTIC CONTENT
@@ -634,8 +634,8 @@ const DIAGNOSTIC_DELIVERABLES = [
 const DIAGNOSTIC_FAQ = [
   { q: 'Who is the Enterprise Diagnostic for?', a: 'Any business considering a capital raise, whether or not it has passed initial screening. It is particularly valuable for businesses that have not yet proceeded to an engagement, and for those who want to understand exactly what to fix before approaching investors.' },
   { q: 'What do I receive?', a: 'A formal, structured Enterprise Diagnostic Report delivered as a PDF document within five business days. It covers your current stage, your constraints, ranked interventions, and a recommended capital pathway.' },
-  { q: 'How does the courtesy credit work?', a: 'You pay the full $50 when you purchase. After your diagnostic is delivered, we issue the courtesy credit back to you: $40 if you are assessed as investment-ready, $30 if you are not yet investment-ready. The credit is applied to your original payment method or held as credit toward future ML Gateway services.' },
-  { q: 'Can I apply the courtesy credit toward the Engagement Fee?', a: 'Yes. The courtesy credit can be applied toward any future ML Gateway service, including the Engagement Fee when you proceed with a capital raise.' },
+  { q: 'How is the Diagnostic priced?', a: 'The standard Diagnostic Report fee is US$50 USD. Based on your assessment outcome, a discounted rate applies at the point of purchase: US$40 USD for investment-ready businesses, or US$30 USD for those still developing. There is no refund mechanic — the discounted rate is the price you pay.' },
+  { q: 'Can I apply the Diagnostic discount toward the Engagement Fee?', a: 'Yes. Where you proceed to engagement, your Diagnostic discount is carried forward as a courtesy credit toward the Engagement Fee at payment.' },
   { q: 'What if I have already completed the platform assessment?', a: 'Your assessment data is used to inform the diagnostic. You do not need to repeat information you have already provided.' },
   { q: 'How long does the diagnostic take?', a: 'Most diagnostics are delivered within five business days. Complex businesses or those requiring additional analysis may take longer, and we will tell you at the point of purchase.' },
 ];
@@ -993,7 +993,7 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
           <p style={{ fontSize: 12.5, color: 'rgba(7,18,36,.6)', marginTop: 6 }}>Your receipt has been generated below. Download it for your records.</p>
           <div className="ps-whatsapp-block">
             <div className="psw-title"><i className="fab fa-whatsapp" aria-hidden="true"></i> Step 1 — Send Proof to ML Gateway</div>
-            <p>To confirm your payment, please send the confirmation below to our team on WhatsApp <strong>+260 762 499 581</strong>. They will compare your details against our records and confirm receipt.</p>
+            <p>To confirm your payment, please send the confirmation below to our team on WhatsApp <strong>+260 768 526 191</strong>. They will compare your details against our records and confirm receipt.</p>
             <a href={whatsappUrl} className="btn-whatsapp" target="_blank" rel="noopener" onClick={() => setWhatsappSent(true)}><i className="fab fa-whatsapp" aria-hidden="true"></i> <span>Send Proof to WhatsApp</span></a>
             <div className="psw-note">If WhatsApp does not open automatically, tap the button above.</div>
             {whatsappSent && <div className="psw-sent show"><i className="fas fa-check-circle"></i> Confirmation ready — please tap <strong>Send</strong> in WhatsApp.</div>}
@@ -1010,7 +1010,7 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
             <div className="receipt-check">
               <h6><i className="fas fa-search"></i> Check receipt status later</h6>
               <div className="receipt-check-row">
-                <input type="text" value={checkRef} onChange={e => setCheckRef(e.target.value)} placeholder="Enter your Receipt No (e.g. MLG-2026-000123)" />
+                <input type="text" value={checkRef} onChange={e => setCheckRef(e.target.value)} placeholder="Enter your Receipt No (e.g. MLG-2026-00001)" />
                 <button type="button" className="btn btn-primary btn-sm" onClick={lookupReceipt}>Check</button>
               </div>
               {checkResult && <div className="receipt-check-result show">{checkResult}</div>}
@@ -1122,7 +1122,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
   const creditAvailable = 40;
   const credit = applyCredit ? creditAvailable : 0;
   const payableNum = Math.max(quote.fee - credit, 0);
-  const payableStr = 'US$' + payableNum.toLocaleString('en-US');
+  const payableStr = 'US$' + payableNum.toLocaleString('en-US') + ' USD';
 
   const today = useMemo(() => new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }), []);
   const engRef = 'ENG-' + refCode.replace('MLG-', '');
@@ -1598,7 +1598,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                   {applyCredit && (
                     <div className="flex justify-between gap-6 py-4 border-t border-white/10">
                       <span className="text-[13px] text-[#F5B722]">Diagnostic courtesy credit applied</span>
-                      <span className="text-[15px] text-[#F5B722] font-semibold">− {formatUSD(credit)}</span>
+                      <span className="text-[15px] text-[#F5B722] font-semibold">− US${credit} USD</span>
                     </div>
                   )}
                   <div className="flex justify-between gap-6 py-5 border-t-2 border-[#F5B722]/40 mt-1">
@@ -1619,9 +1619,9 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                   className="w-full text-left p-5 mb-6 rounded-sm border border-[#F5B722]/30 bg-[#F5B722]/8 hover:bg-[#F5B722]/12 transition-colors flex items-start gap-4 group">
                   <span className="w-5 h-5 shrink-0 rounded-sm border-2 border-[#F5B722] flex items-center justify-center mt-0.5 group-hover:bg-[#F5B722]/20 transition-colors"></span>
                   <span>
-                    <span className="block text-[13.5px] font-semibold text-[#071224] mb-1">Apply Enterprise Diagnostic courtesy credit</span>
+                    <span className="block text-[13.5px] font-semibold text-[#071224] mb-1">Apply Diagnostic courtesy credit</span>
                     <span className="block text-[12.5px] leading-relaxed text-[#071224]/55">
-                      You have {formatUSD(creditAvailable)} of diagnostic courtesy credit available. Apply it toward the Engagement Fee, reducing your payable to {formatUSD(Math.max(quote.fee - creditAvailable, 0))}.
+                      Where you have purchased an Enterprise Diagnostic, your courtesy credit of US${creditAvailable} USD can be applied toward the Engagement Fee, reducing your payable to US${Math.max(quote.fee - creditAvailable, 0)} USD.
                     </span>
                   </span>
                 </button>
@@ -1632,7 +1632,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                     <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#071224" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </span>
                   <span className="flex-1">
-                    <span className="block text-[13.5px] font-semibold text-[#071224] mb-1">Courtesy credit applied — {formatUSD(credit)}</span>
+                    <span className="block text-[13.5px] font-semibold text-[#071224] mb-1">Courtesy credit applied — US${credit} USD</span>
                     <span className="block text-[12.5px] leading-relaxed text-[#071224]/55">Credit is verified against your account before commencement.</span>
                   </span>
                   <button onClick={() => setApplyCredit(false)} className="text-[11px] text-[#071224]/45 hover:text-[#071224] shrink-0">Remove</button>
@@ -1721,7 +1721,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                     ['Country', formData.country],
                     ['Engagement tier', assessment.tierLabel],
                     ['Engagement Fee', formatUSD(quote.fee)],
-                    ...(credit > 0 ? [['Courtesy credit applied', '− ' + formatUSD(credit)]] : []),
+                    ...(credit > 0 ? [['Courtesy credit applied', '− US$' + credit + ' USD']] : []),
                     ['Paid on commencement', payableStr],
                     ['Receipt No', payData.receiptNo],
                     ['Payment reference', payData.transactionRef],
@@ -1784,7 +1784,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
 }
 
 /* ============================================================
-   DIAGNOSTIC PURCHASE MODAL — real payment system
+   DIAGNOSTIC PURCHASE MODAL — real payment, discounted rate
    ============================================================ */
 function PurchaseModal({ open, onClose, courtesyAmount, context }) {
   const [step, setStep] = useState(0);
@@ -1795,9 +1795,14 @@ function PurchaseModal({ open, onClose, courtesyAmount, context }) {
   useEffect(() => { if (open) { setStep(0); setF({ name: '', email: '', company: '', country: '', consent: false }); } }, [open]);
   if (!open) return null;
 
-  const courtesyDisplay = courtesyAmount === 40 ? { amt: '$40', net: '$10', label: 'investment-ready' } :
-                          courtesyAmount === 30 ? { amt: '$30', net: '$20', label: 'not yet investment-ready' } :
-                          { amt: '$30 – $40', net: '$10 – $20', label: 'determined after delivery' };
+  // Standard fee is US$50 USD.
+  // Discounted rate: US$40 USD (investment-ready) or US$30 USD (developing / not-yet-ready).
+  const priceInfo =
+    courtesyAmount === 40
+      ? { price: 'US$40 USD', standard: 'US$50 USD', discount: 'US$10 USD', label: 'Investment-ready rate', note: 'This discounted rate applies to your engagement as an investment-ready business.' }
+      : courtesyAmount === 30
+      ? { price: 'US$30 USD', standard: 'US$50 USD', discount: 'US$20 USD', label: 'Developing-business rate', note: 'This discounted rate applies to help you strengthen your investment readiness.' }
+      : { price: 'US$50 USD', standard: 'US$50 USD', discount: null, label: 'Standard rate', note: 'A discounted rate may apply following your platform assessment.' };
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 modal-fade" style={{ background: 'rgba(7,18,36,0.85)', backdropFilter: 'blur(8px)' }}>
@@ -1819,24 +1824,23 @@ function PurchaseModal({ open, onClose, courtesyAmount, context }) {
             <p className="text-[14px] leading-relaxed text-[#071224]/55 mb-7">A formal diagnostic that tells you where your business stands today, what is constraining it, and what interventions will unlock growth and investment readiness.</p>
 
             <div className="bg-[#071224] rounded-sm p-6 mb-6">
-              <div className="flex items-baseline justify-between mb-5">
+              <div className="flex flex-wrap items-baseline justify-between gap-5 mb-5">
                 <div>
-                  <p className="text-[11px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold mb-1.5">Total price</p>
-                  <p className="serif text-[44px] text-white leading-none">$50<span className="text-[18px] text-white/40 ml-2">USD</span></p>
+                  <p className="text-[11px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold mb-1.5">Diagnostic Fee</p>
+                  <p className="serif text-[44px] text-white leading-none">{priceInfo.price}</p>
+                  <p className="text-[11.5px] text-white/45 mt-2.5">{priceInfo.label}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-[11px] tracking-[0.14em] uppercase text-white/40 font-semibold mb-1.5">Your courtesy credit</p>
-                  <p className="serif text-[36px] text-[#F5B722] leading-none">{courtesyDisplay.amt}</p>
-                </div>
+                {priceInfo.discount && (
+                  <div className="text-right">
+                    <p className="text-[11px] tracking-[0.14em] uppercase text-white/40 font-semibold mb-1.5">Discount applied</p>
+                    <p className="serif text-[30px] text-[#F5B722] leading-none">− {priceInfo.discount}</p>
+                    <p className="text-[11px] text-white/40 mt-2.5">from {priceInfo.standard} standard</p>
+                  </div>
+                )}
               </div>
-              <div className="pt-5 border-t border-white/10 flex items-baseline justify-between gap-4">
-                <span className="text-[13px] text-white/60">Your net cost after courtesy credit</span>
-                <span className="serif text-[24px] text-[#F5B722]">{courtesyDisplay.net}</span>
+              <div className="pt-5 border-t border-white/10">
+                <p className="text-[12px] leading-relaxed text-white/55">Standard Diagnostic Report fee: <strong className="text-white">{priceInfo.standard}</strong>. {priceInfo.note}</p>
               </div>
-              <p className="mt-4 text-[11.5px] leading-relaxed text-white/40">
-                {courtesyAmount ? `You qualify for the ${courtesyDisplay.label} courtesy rate of ${courtesyDisplay.amt}. ` : 'Courtesy credit is $40 for investment-ready businesses and $30 for not-yet-investment-ready businesses. '}
-                The courtesy is issued after the diagnostic is delivered, either to your original payment method or as credit toward any future ML Gateway service — including the Engagement Fee.
-              </p>
             </div>
 
             <div className="bg-white rounded-sm p-6 mb-6 border border-[#071224]/5">
@@ -1863,7 +1867,7 @@ function PurchaseModal({ open, onClose, courtesyAmount, context }) {
                   {f.consent && <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#071224" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>}
                 </span>
                 <span className="text-[12.5px] leading-relaxed text-[#071224]/60">
-                  I confirm I am authorised to purchase on behalf of this business, and I agree to the Enterprise Diagnostic terms. I understand the courtesy credit is issued after delivery.
+                  I confirm I am authorised to purchase on behalf of this business, and I agree to the Enterprise Diagnostic terms.
                 </span>
               </button>
             </div>
@@ -1872,7 +1876,7 @@ function PurchaseModal({ open, onClose, courtesyAmount, context }) {
               <Btn size="lg" onClick={() => setStep(1)} disabled={!valid} className="flex-1">Proceed to payment <Arrow /></Btn>
               <Btn size="lg" variant="ghost" onClick={onClose}>Cancel</Btn>
             </div>
-            <p className="mt-4 text-[11px] text-[#071224]/35 text-center">Secure payment. The courtesy credit is issued after the diagnostic is delivered.</p>
+            <p className="mt-4 text-[11px] text-[#071224]/35 text-center">Secure payment. The Diagnostic Report is delivered within five business days.</p>
           </div>
         )}
 
@@ -1883,10 +1887,10 @@ function PurchaseModal({ open, onClose, courtesyAmount, context }) {
               Back
             </button>
             <PaymentFlow
-              amount="US$50"
+              amount={priceInfo.price}
               currency="USD"
-              purpose="Enterprise Diagnostic"
-              purposeDetail="Non-refundable. Structured report delivered within 5 business days."
+              purpose="Enterprise Diagnostic Report"
+              purposeDetail={`Diagnostic Report fee ${priceInfo.price}. Structured report delivered within 5 business days.`}
               applicant={{ firstName: f.name.split(' ')[0] || f.name, lastName: f.name.split(' ').slice(1).join(' ') || '', email: f.email, phone: '', country: f.country, company: f.company }}
               receiptPrefix="MLG-DIAG"
               onConfirmed={() => {}}
@@ -2064,8 +2068,8 @@ function Footer({ go }) {
           <div>
             <Micro light className="block mb-5">Contact</Micro>
             <div className="space-y-3 text-[13.5px] text-white/50">
-              <p>opportunities@mlgateway.com</p>
               <p>engagements@mlgateway.com</p>
+              <p>+260 768 526 191</p>
             </div>
           </div>
         </div>
@@ -2110,7 +2114,7 @@ function TermsPanel({ quote }) {
             <p className="text-[14.5px] font-semibold text-white">Submission &amp; Assessment Fee</p>
             <span className="text-[10px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold whitespace-nowrap">On submission</span>
           </div>
-          <p className="text-[11px] text-white/40 mb-2">K120 (Zambia) · US$10 (rest of world)</p>
+          <p className="text-[11px] text-white/40 mb-2">K120 (Zambia) · US$10 USD (rest of world)</p>
           <p className="text-[12.5px] leading-relaxed text-white/50">Non-refundable. Activates the automated platform assessment that returns your decision.</p>
         </div>
 
@@ -2238,7 +2242,7 @@ function Home({ go, openPurchase }) {
                 ['Submission & Assessment Fee', 'Payable on submission. Non-refundable.'],
                 ['Engagement Fee', 'Payable on commencement. Quoted in your Engagement Proposal.'],
                 ['Success Fee', 'Payable only on successful capital mobilisation.'],
-                ['Diagnostic courtesy credit', 'Applied toward the Engagement Fee where applicable.'],
+                ['Diagnostic Report fee', 'Standard US$50 USD. Discounted rates apply based on assessment outcome.'],
               ].map(([k, v]) => (
                 <div key={k} className="border-l-2 border-[#F5B722]/30 pl-4 hover:border-[#F5B722] transition-colors">
                   <Micro className="block mb-2.5">{k}</Micro>
@@ -2408,20 +2412,20 @@ function DiagnosticPage({ go, openPurchase }) {
                 A structured Enterprise Diagnostic that tells you exactly where your business stands today, what is holding it back, and what to do about it. Built for any business considering a raise — whether or not it has passed initial screening.
               </p>
               <div className="flex flex-wrap gap-3">
-                <Btn size="lg" onClick={() => openPurchase(null, 'diagnostic-page')}>Purchase Diagnostic — $50 <Arrow /></Btn>
+                <Btn size="lg" onClick={() => openPurchase(null, 'diagnostic-page')}>Purchase Diagnostic — US$50 USD <Arrow /></Btn>
                 <Btn size="lg" variant="ghostLight" onClick={() => go('businesses')}>Submit an opportunity</Btn>
               </div>
             </div>
             <div className="bg-white/[0.03] border border-[#F5B722]/20 rounded-sm p-7 lg:p-8 glow">
               <Micro light className="block mb-6">At a glance</Micro>
               <div className="space-y-5">
-                <div className="flex items-baseline justify-between gap-4 pb-5 border-b border-white/10"><span className="text-[13px] text-white/55">Diagnostic price</span><span className="serif text-[28px] text-white">$50</span></div>
-                <div className="flex items-baseline justify-between gap-4 pb-5 border-b border-white/10"><span className="text-[13px] text-white/55">Courtesy — investment-ready</span><span className="serif text-[22px] text-[#F5B722]">$40</span></div>
-                <div className="flex items-baseline justify-between gap-4 pb-5 border-b border-white/10"><span className="text-[13px] text-white/55">Courtesy — not yet ready</span><span className="serif text-[22px] text-[#E0A030]">$30</span></div>
+                <div className="flex items-baseline justify-between gap-4 pb-5 border-b border-white/10"><span className="text-[13px] text-white/55">Standard fee</span><span className="serif text-[24px] text-white">US$50 USD</span></div>
+                <div className="flex items-baseline justify-between gap-4 pb-5 border-b border-white/10"><span className="text-[13px] text-white/55">Investment-ready rate</span><span className="serif text-[22px] text-[#F5B722]">US$40 USD</span></div>
+                <div className="flex items-baseline justify-between gap-4 pb-5 border-b border-white/10"><span className="text-[13px] text-white/55">Developing-business rate</span><span className="serif text-[22px] text-[#E0A030]">US$30 USD</span></div>
                 <div className="flex items-baseline justify-between gap-4"><span className="text-[13px] text-white/55">Delivery</span><span className="serif text-[18px] text-white">5 business days</span></div>
               </div>
               <p className="mt-6 pt-5 border-t border-white/10 text-[11.5px] leading-relaxed text-white/40">
-                Courtesy credit is issued after delivery and can be applied to your original payment method, toward the Engagement Fee, or any future ML Gateway service.
+                Discounted rates apply based on your assessment outcome. There is no refund mechanic — the discounted rate is the price you pay.
               </p>
             </div>
           </div>
@@ -2517,23 +2521,22 @@ function DiagnosticPage({ go, openPurchase }) {
 
       <section className="bg-white">
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
-          <SectionHead eyebrow="Pricing" title="One price. Two courtesy rates." sub="The base price is $50. After your diagnostic is delivered, we issue a courtesy credit — higher for investment-ready businesses, lower for those still developing." className="mb-14 max-w-3xl" />
+          <SectionHead eyebrow="Pricing" title="Standard fee US$50 USD. Discounted rates apply." sub="The standard Diagnostic Report fee is US$50 USD. Based on your assessment outcome, a discounted rate applies at the point of purchase — US$40 USD for investment-ready businesses, or US$30 USD for those still developing." className="mb-14 max-w-3xl" />
           <div className="grid lg:grid-cols-2 gap-6 mb-10">
             <div className="bg-[#071224] text-white p-8 lg:p-10 rounded-sm border border-[#F5B722]/30 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-40 h-40 bg-[#F5B722]/10 rounded-full blur-[60px]"></div>
               <div className="relative">
                 <div className="flex items-center justify-between mb-7">
                   <Micro light>Investment-ready</Micro>
-                  <span className="text-[10px] tracking-[0.14em] uppercase font-semibold text-[#071224] bg-[#F5B722] px-3 py-1 rounded-full">Higher courtesy</span>
+                  <span className="text-[10px] tracking-[0.14em] uppercase font-semibold text-[#071224] bg-[#F5B722] px-3 py-1 rounded-full">Discounted rate</span>
                 </div>
                 <div className="flex items-baseline gap-3 mb-2">
-                  <span className="serif text-[54px] text-[#F5B722] leading-none">$40</span>
-                  <span className="text-[13px] text-white/50">courtesy credit</span>
+                  <span className="serif text-[54px] text-[#F5B722] leading-none">US$40</span>
+                  <span className="text-[13px] text-white/50">USD</span>
                 </div>
-                <p className="text-[13.5px] text-white/55 mb-7">Net cost after courtesy: <span className="text-white font-semibold">$10</span></p>
+                <p className="text-[13.5px] text-white/55 mb-7">Discounted from <span className="text-white/70">US$50 USD</span> standard</p>
                 <div className="space-y-3 pt-6 border-t border-white/10">
-                  <p className="text-[12.5px] leading-relaxed text-white/50">For businesses assessed as investment-ready or investment-grade by the platform.</p>
-                  <p className="text-[12.5px] leading-relaxed text-white/50">You pay $50 upfront, and $40 is returned to you after the diagnostic is delivered.</p>
+                  <p className="text-[12.5px] leading-relaxed text-white/50">Applies to businesses assessed as investment-ready or investment-grade by the platform.</p>
                 </div>
               </div>
             </div>
@@ -2541,17 +2544,16 @@ function DiagnosticPage({ go, openPurchase }) {
               <div className="absolute top-0 right-0 w-40 h-40 bg-[#E0A030]/5 rounded-full blur-[60px]"></div>
               <div className="relative">
                 <div className="flex items-center justify-between mb-7">
-                  <Micro>Not yet investment-ready</Micro>
-                  <span className="text-[10px] tracking-[0.14em] uppercase font-semibold text-white bg-[#E0A030] px-3 py-1 rounded-full">Standard courtesy</span>
+                  <Micro>Developing business</Micro>
+                  <span className="text-[10px] tracking-[0.14em] uppercase font-semibold text-white bg-[#E0A030] px-3 py-1 rounded-full">Discounted rate</span>
                 </div>
                 <div className="flex items-baseline gap-3 mb-2">
-                  <span className="serif text-[54px] text-[#E0A030] leading-none">$30</span>
-                  <span className="text-[13px] text-[#071224]/50">courtesy credit</span>
+                  <span className="serif text-[54px] text-[#E0A030] leading-none">US$30</span>
+                  <span className="text-[13px] text-[#071224]/50">USD</span>
                 </div>
-                <p className="text-[13.5px] text-[#071224]/55 mb-7">Net cost after courtesy: <span className="text-[#071224] font-semibold">$20</span></p>
+                <p className="text-[13.5px] text-[#071224]/55 mb-7">Discounted from <span className="text-[#071224]/70">US$50 USD</span> standard</p>
                 <div className="space-y-3 pt-6 border-t border-[#071224]/8">
-                  <p className="text-[12.5px] leading-relaxed text-[#071224]/55">For businesses that have not yet met the platform's investment-readiness criteria.</p>
-                  <p className="text-[12.5px] leading-relaxed text-[#071224]/55">You pay $50 upfront, and $30 is returned to you after the diagnostic is delivered.</p>
+                  <p className="text-[12.5px] leading-relaxed text-[#071224]/55">Applies to businesses that have not yet met the platform's investment-readiness criteria.</p>
                 </div>
               </div>
             </div>
@@ -2559,11 +2561,11 @@ function DiagnosticPage({ go, openPurchase }) {
           <div className="bg-[#F0F4F8] p-6 lg:p-8 rounded-sm border border-[#071224]/5 max-w-4xl mx-auto">
             <div className="grid md:grid-cols-3 gap-6 items-center">
               <div className="md:col-span-2">
-                <p className="text-[13.5px] font-semibold text-[#071224] mb-2">The courtesy credit can be applied to the Engagement Fee</p>
-                <p className="text-[12.5px] leading-relaxed text-[#071224]/55">Apply it to your original payment method, or hold it as credit toward the Engagement Fee when you proceed with a capital raise — reducing your payable on commencement.</p>
+                <p className="text-[13.5px] font-semibold text-[#071224] mb-2">Discounts are applied at point of purchase</p>
+                <p className="text-[12.5px] leading-relaxed text-[#071224]/55">The discounted rate is the price you pay — there is no refund mechanic and no advance payment at the standard rate. Where you proceed to engagement, your Diagnostic discount is carried forward as a courtesy credit toward the Engagement Fee.</p>
               </div>
               <div className="md:text-right">
-                <Btn onClick={() => openPurchase(null, 'pricing-section')}>Purchase Diagnostic — $50 <Arrow /></Btn>
+                <Btn onClick={() => openPurchase(null, 'pricing-section')}>Purchase Diagnostic — US$50 USD <Arrow /></Btn>
               </div>
             </div>
           </div>
@@ -2575,10 +2577,10 @@ function DiagnosticPage({ go, openPurchase }) {
           <SectionHead light eyebrow="How it works" title="Purchase. Submit. Receive." sub="A short, focused process designed to respect your time and deliver real value." className="mb-16 max-w-3xl" />
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 rounded-sm overflow-hidden">
             {[
-              { n: '01', t: 'Purchase', d: 'Pay $50. You receive immediate confirmation and a short intake form tailored to your business.' },
+              { n: '01', t: 'Purchase', d: 'Pay the applicable Diagnostic fee — US$40 USD or US$30 USD if a discount applies, or US$50 USD standard. You receive immediate confirmation and a short intake form.' },
               { n: '02', t: 'Submit', d: 'Complete the intake — or reuse your platform assessment. No repeated questions.' },
               { n: '03', t: 'Diagnostic', d: 'We analyse your stage, constraints and interventions, drawing on your financials, governance and readiness data.' },
-              { n: '04', t: 'Receive', d: 'Your Structured Enterprise Diagnostic Report is delivered as a PDF within five business days, along with your courtesy credit.' },
+              { n: '04', t: 'Receive', d: 'Your Structured Enterprise Diagnostic Report is delivered as a PDF within five business days.' },
             ].map((s) => (
               <div key={s.n} className="bg-[#071224] p-8 lg:p-10 hover:bg-[#0F203A] transition-colors duration-300">
                 <span className="serif text-[16px] text-[#F5B722] block mb-8">{s.n}</span>
@@ -2626,7 +2628,7 @@ function DiagnosticPage({ go, openPurchase }) {
               <p className="text-[15.5px] leading-relaxed text-white/50 max-w-xl">A structured Enterprise Diagnostic that replaces guesswork with a clear assessment of your stage, your constraints and the interventions that will unlock growth.</p>
             </div>
             <div className="flex flex-col sm:flex-row lg:flex-col gap-4 lg:items-end">
-              <Btn size="lg" variant="primary" onClick={() => openPurchase(null, 'diagnostic-footer')}>Purchase Diagnostic — $50 <Arrow /></Btn>
+              <Btn size="lg" variant="primary" onClick={() => openPurchase(null, 'diagnostic-footer')}>Purchase Diagnostic — US$50 USD <Arrow /></Btn>
               <Btn size="lg" variant="ghostLight" onClick={() => go('businesses')}>Submit an opportunity</Btn>
             </div>
           </div>
@@ -2676,7 +2678,7 @@ function CapitalFit({ go, onComplete }) {
             <p className="text-[15.5px] leading-relaxed text-[#071224]/55 mb-10">This orientation helps frame your opportunity. To receive the full automated screening and a formal decision, submit your opportunity and pay the non-refundable Submission &amp; Assessment Fee.</p>
             <div className="bg-[#071224] p-6 lg:p-8 rounded-sm mb-10">
               <div className="flex flex-wrap items-center gap-3 mb-4"><span className="w-2 h-2 rounded-full bg-[#F5B722] pulse-soft"></span><Micro light>Next step — Paid submission</Micro></div>
-              <p className="text-[14px] text-white/60 mb-5">Submission &amp; Assessment Fee: <strong className="text-[#F5B722]">K120 (Zambia)</strong> · <strong className="text-[#F5B722]">US$10 (rest of world)</strong>.</p>
+              <p className="text-[14px] text-white/60 mb-5">Submission &amp; Assessment Fee: <strong className="text-[#F5B722]">K120 (Zambia)</strong> · <strong className="text-[#F5B722]">US$10 USD (rest of world)</strong>.</p>
               <Btn variant="primary" onClick={() => onComplete(answers)}>Proceed to submission <Arrow /></Btn>
             </div>
             <Btn variant="ghost" onClick={() => { setDone(false); setStep(0); }}>Change my answers</Btn>
@@ -2741,8 +2743,8 @@ function CapitalFit({ go, onComplete }) {
    ============================================================ */
 function DiagnosticInlineOffer({ decision, onPurchase }) {
   const investmentReady = decision === 'approve';
-  const courtesy = investmentReady ? '$40' : '$30';
-  const net = investmentReady ? '$10' : '$20';
+  const rate = investmentReady ? 'US$40 USD' : 'US$30 USD';
+  const discount = investmentReady ? 'US$10 USD' : 'US$20 USD';
   return (
     <div className="bg-gradient-to-br from-[#071224] to-[#0F203A] p-6 lg:p-8 rounded-sm border border-[#F5B722]/30 mt-10 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-48 h-48 bg-[#F5B722]/10 rounded-full blur-[70px] pointer-events-none"></div>
@@ -2750,18 +2752,18 @@ function DiagnosticInlineOffer({ decision, onPurchase }) {
         <div className="flex flex-wrap items-center gap-3 mb-5">
           <span className="w-2 h-2 rounded-full bg-[#F5B722] pulse-soft"></span>
           <Micro light>Optional next step — Enterprise Diagnostic</Micro>
-          <span className="text-[10px] tracking-[0.12em] uppercase font-semibold text-[#071224] bg-[#F5B722] px-2.5 py-1 rounded-full">{courtesy} courtesy applies</span>
+          <span className="text-[10px] tracking-[0.12em] uppercase font-semibold text-[#071224] bg-[#F5B722] px-2.5 py-1 rounded-full">Discounted rate applies</span>
         </div>
         <h3 className="serif text-[24px] lg:text-[28px] leading-tight text-white mb-3">
           {investmentReady ? 'Deepen your investment readiness with a structured diagnostic.' : 'Understand exactly what to fix, and how to fix it.'}
         </h3>
         <p className="text-[13.5px] leading-relaxed text-white/55 mb-6 max-w-2xl">
-          {investmentReady ? 'You qualify for the investment-ready courtesy rate. The diagnostic gives you a formal read on your stage, your constraints and the interventions that will strengthen your position further.' : 'You qualify for the not-yet-investment-ready courtesy rate. The diagnostic tells you exactly which constraints to address, in what order, and what to expect from each intervention.'}
+          {investmentReady ? 'You qualify for the investment-ready discounted rate. The diagnostic gives you a formal read on your stage, your constraints and the interventions that will strengthen your position further.' : 'You qualify for the developing-business discounted rate. The diagnostic tells you exactly which constraints to address, in what order, and what to expect from each intervention.'}
         </p>
         <div className="grid sm:grid-cols-3 gap-4 mb-6">
-          <div className="p-4 rounded-sm bg-white/[0.04] border border-white/10"><p className="text-[10.5px] tracking-[0.12em] uppercase text-white/40 font-semibold mb-1.5">Price</p><p className="serif text-[22px] text-white">$50</p></div>
-          <div className="p-4 rounded-sm bg-white/[0.04] border border-white/10"><p className="text-[10.5px] tracking-[0.12em] uppercase text-white/40 font-semibold mb-1.5">Your courtesy</p><p className="serif text-[22px] text-[#F5B722]">{courtesy}</p></div>
-          <div className="p-4 rounded-sm bg-white/[0.04] border border-[#F5B722]/30"><p className="text-[10.5px] tracking-[0.12em] uppercase text-[#F5B722] font-semibold mb-1.5">Your net cost</p><p className="serif text-[22px] text-[#F5B722]">{net}</p></div>
+          <div className="p-4 rounded-sm bg-white/[0.04] border border-white/10"><p className="text-[10.5px] tracking-[0.12em] uppercase text-white/40 font-semibold mb-1.5">Standard fee</p><p className="serif text-[20px] text-white/70">US$50 USD</p></div>
+          <div className="p-4 rounded-sm bg-white/[0.04] border border-white/10"><p className="text-[10.5px] tracking-[0.12em] uppercase text-white/40 font-semibold mb-1.5">Your discount</p><p className="serif text-[20px] text-[#F5B722]">− {discount}</p></div>
+          <div className="p-4 rounded-sm bg-white/[0.04] border border-[#F5B722]/30"><p className="text-[10.5px] tracking-[0.12em] uppercase text-[#F5B722] font-semibold mb-1.5">Your rate</p><p className="serif text-[20px] text-[#F5B722]">{rate}</p></div>
         </div>
         <div className="flex flex-wrap gap-3">
           <Btn onClick={onPurchase}>Purchase Enterprise Diagnostic <Arrow /></Btn>
@@ -2818,7 +2820,7 @@ function EngagementPathwayPanel({ assessment, formData }) {
         </div>
 
         <p className="text-[12px] leading-relaxed text-white/40">
-          The Engagement Fee is payable upon commencement and is not contingent upon successful capital mobilisation. Any Enterprise Diagnostic courtesy credit you hold can be applied toward the Engagement Fee.
+          The Engagement Fee is payable upon commencement and is not contingent upon successful capital mobilisation. Any Enterprise Diagnostic discount carried forward can be applied toward the Engagement Fee.
         </p>
       </div>
     </div>
@@ -3031,10 +3033,10 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
 }
 
 /* ============================================================
-   BUSINESS ACCESS — with paid submission step inserted
+   BUSINESS ACCESS
    ============================================================ */
 function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
-  const [step, setStep] = useState(0); // 0-3 form, 4 = payment, 5 = result, 6 = engagement
+  const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [f, setF] = useState({
     company: '', country: '', sector: prefill?.sector || '', legalStructure: '', yearsOperation: '', employees: '', stage: prefill?.stage || '',
@@ -3306,7 +3308,7 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
                 </div>
                 <div className="flex justify-between gap-3 text-[12px]">
                   <span className="text-[#071224]/55">Rest of world</span>
-                  <span className="text-[#071224] font-semibold">US$10</span>
+                  <span className="text-[#071224] font-semibold">US$10 USD</span>
                 </div>
               </div>
               <p className="mt-4 text-[11px] leading-relaxed text-[#071224]/40">Payable via Airtel Money, MTN MoMo, Standard Chartered Bank, PayPal or Crypto. Proof is verified via WhatsApp.</p>
@@ -3613,8 +3615,8 @@ function HowItWorks({ go, openPurchase }) {
               </div>
             </div>
             <div className="mt-6 pt-6 border-t border-[#071224]/8">
-              <Micro className="block mb-4">Diagnostic courtesy credit</Micro>
-              <p className="text-[13px] leading-relaxed text-[#071224]/60">If you have purchased the Enterprise Diagnostic, your courtesy credit (up to $40) can be applied toward the Engagement Fee at payment.</p>
+              <Micro className="block mb-4">Enterprise Diagnostic</Micro>
+              <p className="text-[13px] leading-relaxed text-[#071224]/60">Standard fee US$50 USD. Discounted rates apply at the point of purchase based on assessment outcome — US$40 USD for investment-ready businesses, US$30 USD for those still developing.</p>
             </div>
           </div>
         </div>
@@ -3652,22 +3654,26 @@ function HowItWorks({ go, openPurchase }) {
               </div>
               <div className="flex flex-wrap gap-3">
                 <Btn variant="primary" onClick={() => go('diagnostic')}>Explore the Diagnostic <Arrow /></Btn>
-                <Btn variant="ghostLight" onClick={() => openPurchase(null, 'how-it-works')}>Purchase — $50</Btn>
+                <Btn variant="ghostLight" onClick={() => openPurchase(null, 'how-it-works')}>Purchase — US$50 USD</Btn>
               </div>
             </div>
             <div className="bg-white/[0.03] border border-[#F5B722]/20 rounded-sm p-6">
-              <Micro light className="block mb-5">Courtesy structure</Micro>
+              <Micro light className="block mb-5">Diagnostic rate structure</Micro>
               <div className="space-y-4">
                 <div className="flex items-baseline justify-between pb-4 border-b border-white/10">
+                  <span className="text-[12.5px] text-white/55">Standard fee</span>
+                  <span className="serif text-[18px] text-white/70">US$50 USD</span>
+                </div>
+                <div className="flex items-baseline justify-between pb-4 border-b border-white/10">
                   <span className="text-[12.5px] text-white/55">Investment-ready</span>
-                  <span className="serif text-[20px] text-[#F5B722]">$40 back</span>
+                  <span className="serif text-[20px] text-[#F5B722]">US$40 USD</span>
                 </div>
                 <div className="flex items-baseline justify-between">
-                  <span className="text-[12.5px] text-white/55">Not yet ready</span>
-                  <span className="serif text-[20px] text-[#E0A030]">$30 back</span>
+                  <span className="text-[12.5px] text-white/55">Developing business</span>
+                  <span className="serif text-[20px] text-[#E0A030]">US$30 USD</span>
                 </div>
               </div>
-              <p className="mt-5 pt-5 border-t border-white/10 text-[11px] leading-relaxed text-white/40">Credit issued after delivery, applied to payment method, the Engagement Fee, or future services.</p>
+              <p className="mt-5 pt-5 border-t border-white/10 text-[11px] leading-relaxed text-white/40">Discounted rate is applied at the point of purchase based on your assessment outcome.</p>
             </div>
           </div>
         </div>
