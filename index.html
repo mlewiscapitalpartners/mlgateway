@@ -14,7 +14,6 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
 <style>
   :root { --navy: #071224; --yellow: #F5B722; --light: #F0F4F8; --success: #28A745; --error: #DC3545; --warning: #FFC107;
-    --airtel-red:#E40000; --mtn-yellow:#FFCC00; --scb-blue:#1B5E8C; --paypal-blue:#003087; --crypto-orange:#F7931A;
     --whatsapp:#25D366; --whatsapp-dark:#1EBE5A; --whatsapp-deep:#075E54; --info:#009CDE; --info-deep:#0A4D6E; }
   html { scroll-behavior: smooth; }
   body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; background-color: var(--light); }
@@ -44,7 +43,7 @@
   .clause-num { font-variant-numeric: tabular-nums; }
   .paper { box-shadow: 0 10px 40px -10px rgba(7,18,36,0.15), 0 2px 8px rgba(7,18,36,0.04); }
 
-  /* ===== Payment system (from Nolan Institute) ===== */
+  /* ===== Payment system (real, live) ===== */
   .pay-amount-banner{background:linear-gradient(135deg,var(--navy) 0%,#0F203A 100%);color:#fff;border-radius:14px;padding:22px 24px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden}
   .pay-amount-banner .pab-label{font-size:11px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#F5B722;margin-bottom:6px;position:relative;z-index:2}
   .pay-amount-banner .pab-amount{font-family:'Playfair Display',Georgia,serif;font-size:clamp(2rem,4vw,2.6rem);font-weight:800;color:#F5B722;line-height:1;position:relative;z-index:2}
@@ -195,7 +194,7 @@
 const { useState, useMemo, useEffect, useCallback, useRef } = React;
 
 /* ============================================================
-   CONFIGURATION
+   CONFIG
    ============================================================ */
 const ADMIN_WHATSAPP = '260762499581';
 const FIREBASE_CONFIG = {
@@ -225,7 +224,7 @@ const firebaseReady = (async function initFirebase(){
 })();
 
 /* ============================================================
-   PAYMENT METHODS (client's real accounts — unchanged)
+   PAYMENT METHODS — client's real accounts
    ============================================================ */
 const PAYMENT_METHODS = {
   airtel: {
@@ -326,11 +325,9 @@ const PAYMENT_METHODS = {
   }
 };
 
-/* ============================================================
-   FEE CONFIG — Submission & Assessment Fee (replaces free assessment)
-   ============================================================ */
+/* Submission & Assessment Fee (replaces free assessment) */
 const SUBMISSION_FEE = {
-  zambia:        { amount: 'K120',  currency: 'ZMW', label: 'Zambia' },
+  zambia: { amount: 'K120', currency: 'ZMW', label: 'Zambia' },
   international: { amount: 'US$10', currency: 'USD', label: 'International' }
 };
 function getSubmissionFee(country) {
@@ -386,7 +383,7 @@ const MGMT_TEAM = ['Experienced and complete','Experienced with identified gaps'
 const KEY_PERSON = ['Low — strong bench','Moderate','High — single key person'];
 
 /* ============================================================
-   GEOGRAPHY BANDS — Engagement Fee ranges
+   GEOGRAPHY BANDS — Engagement Fee
    ============================================================ */
 const GEO_BANDS = {
   'Africa':     { min: 1000, max: 2500, label: 'African markets' },
@@ -587,7 +584,7 @@ async function generateReceiptNumber(prefix){
 }
 
 /* ============================================================
-   PRIMITIVES (unchanged)
+   PRIMITIVES
    ============================================================ */
 function Micro({ children, className = '', light = false }) { return <span className={`micro ${light ? 'text-[#F5B722]' : 'text-[#071224]/50'} ${className}`}>{children}</span>; }
 function Btn({ children, onClick, variant = 'primary', size = 'md', className = '', type = 'button', disabled }) {
@@ -631,7 +628,7 @@ function DecisionBadge({ decision, size = 'lg' }) {
 }
 
 /* ============================================================
-   RECEIPT COMPONENT
+   RECEIPT
    ============================================================ */
 function Receipt({ data, id }) {
   const canvasRef = useRef(null);
@@ -952,7 +949,7 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
 }
 
 /* ============================================================
-   FLOATING ASSISTANT (unchanged)
+   FLOATING ASSISTANT
    ============================================================ */
 function FloatingAssistant() {
   const [open, setOpen] = useState(false);
@@ -984,7 +981,7 @@ function FloatingAssistant() {
 }
 
 /* ============================================================
-   NAV (unchanged)
+   NAV
    ============================================================ */
 const NAV_LINKS = [['businesses','01','For Businesses'],['diagnostic','02','Diagnostic'],['investors','03','For Investors'],['network','04','Network'],['how','05','How It Works'],['opportunities','06','Opportunities'],['insights','07','Insights'],['about','08','About']];
 function Nav({ route, go, engagementActive }) {
@@ -1042,7 +1039,7 @@ function Nav({ route, go, engagementActive }) {
 }
 
 /* ============================================================
-   FOOTER (unchanged)
+   FOOTER
    ============================================================ */
 function Footer({ go }) {
   return (
@@ -1134,7 +1131,7 @@ function TermsPanel() {
 }
 
 /* ============================================================
-   HOME (original layout — orientation interface + sections preserved)
+   HOME — original layout preserved
    ============================================================ */
 function Home({ go, openPurchase }) {
   const orientation = [
@@ -1208,39 +1205,33 @@ function Home({ go, openPurchase }) {
 
       <section className="bg-white">
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
-          <div className="grid lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-20 items-start">
+          <div className="grid lg:grid-cols-[1fr_1.15fr] gap-12 lg:gap-20 items-center">
             <div>
-              <div className="flex items-center gap-4 mb-6"><span className="w-3 h-3 rounded-full bg-[#F5B722] pulse-soft"></span><Micro>Paid service — Enterprise Diagnostic</Micro></div>
-              <h2 className="serif text-[clamp(1.9rem,4.5vw,3rem)] leading-[1.1] text-[#071224] mb-6">Know your stage. See your constraints. Get the <span className="italic text-[#F5B722]">interventions</span>.</h2>
-              <p className="text-[15.5px] leading-relaxed text-[#071224]/55 mb-8 max-w-xl">A structured Enterprise Diagnostic that tells you exactly where your business stands today, what is holding it back, and what to do about it. Built for any business considering a raise — whether or not it has passed initial screening.</p>
-              <div className="grid sm:grid-cols-2 gap-x-6 gap-y-4 mb-9">
-                {[['01','Current Business Stage'],['02','Constraint Analysis'],['03','Ranked Interventions'],['04','Structured Report (PDF)']].map(([n, t]) => (
-                  <div key={n} className="flex items-start gap-3"><span className="serif text-[13px] text-[#F5B722] font-bold pt-0.5 w-6 shrink-0">{n}</span><span className="text-[13.5px] font-medium text-[#071224]">{t}</span></div>
-                ))}
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Btn size="lg" onClick={() => go('diagnostic')}>Explore the Diagnostic <Arrow /></Btn>
-                <Btn size="lg" variant="ghost" onClick={() => openPurchase(null, 'home')}>Purchase — $50</Btn>
+              <SectionHead eyebrow="Find your capital pathway" title="Answer six questions. See where your opportunity fits." sub="The platform progressively understands what you are raising, and shows you the categories of private capital your opportunity may be suited to — before you submit anything." />
+              <div className="mt-10 flex flex-wrap gap-3">
+                <Btn size="lg" onClick={() => go('fit')}>Start the pathway <Arrow /></Btn>
+                <Btn size="lg" variant="ghost" onClick={() => go('businesses')}>Skip to submission</Btn>
               </div>
             </div>
-            <div className="bg-[#071224] p-7 lg:p-9 rounded-sm border border-[#F5B722]/20 glow">
-              <Micro light className="block mb-6">Pricing & courtesy</Micro>
-              <div className="flex items-baseline justify-between mb-6">
-                <div><p className="text-[10.5px] tracking-[0.14em] uppercase text-white/40 font-semibold mb-1">Price</p><p className="serif text-[40px] text-white leading-none">$50</p></div>
-                <span className="text-[11px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold px-3 py-1.5 border border-[#F5B722]/30 rounded-full">Paid service</span>
+            <div className="bg-[#071224] p-8 lg:p-10 rounded-sm border border-[#F5B722]/20 glow">
+              <Micro light className="block mb-8">Interactive Preview</Micro>
+              <div className="space-y-8">
+                {previewData.map((item, qi) => (
+                  <div key={qi} className={qi > 0 ? 'pt-8 border-t border-white/10' : ''}>
+                    <p className="text-[14px] text-white/80 mb-4 font-medium">{item.q}</p>
+                    <div className="flex flex-wrap gap-2">
+                      {item.opts.map((o, i) => (
+                        <button key={o} onClick={() => {}}
+                          className={`text-[12px] px-4 py-2.5 rounded-sm border transition-all duration-200 ${i === item.active ? 'border-[#F5B722] bg-[#F5B722] text-[#071224] font-medium shadow-[0_0_15px_rgba(245,183,34,0.3)]' : 'border-white/15 text-white/50 hover:border-[#F5B722]/50 hover:text-white'}`}>{o}</button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="space-y-4 mb-6">
-                <div className="p-4 rounded-sm bg-white/[0.03] border border-white/10">
-                  <div className="flex items-baseline justify-between mb-1.5"><span className="text-[11.5px] tracking-[0.1em] uppercase text-[#F5B722] font-semibold">Investment-ready</span><span className="serif text-[20px] text-[#F5B722]">$40 credit</span></div>
-                  <p className="text-[11.5px] leading-relaxed text-white/45">Net cost $10 after courtesy</p>
-                </div>
-                <div className="p-4 rounded-sm bg-white/[0.03] border border-white/10">
-                  <div className="flex items-baseline justify-between mb-1.5"><span className="text-[11.5px] tracking-[0.1em] uppercase text-[#E0A030] font-semibold">Not yet investment-ready</span><span className="serif text-[20px] text-[#E0A030]">$30 credit</span></div>
-                  <p className="text-[11.5px] leading-relaxed text-white/45">Net cost $20 after courtesy</p>
-                </div>
+              <div className="mt-10 pt-8 border-t border-white/10">
+                <div className="flex items-center gap-3 mb-3"><span className="w-2 h-2 rounded-full bg-[#F5B722] pulse-soft"></span><span className="text-[11px] tracking-[0.14em] uppercase text-[#F5B722] font-medium">Live Match Preview</span></div>
+                <p className="text-[14px] text-white/60 leading-relaxed">Based on the information you provide, your opportunity may be suited to <span className="text-[#F5B722] font-semibold">3 categories</span> of private capital.</p>
               </div>
-              <p className="text-[11.5px] leading-relaxed text-white/40 mb-6">Courtesy credit is issued after the diagnostic is delivered, and can be applied to your original payment method, toward the Engagement Fee, or any future ML Gateway service.</p>
-              <button onClick={() => openPurchase(null, 'home')} className="w-full text-left flex items-center justify-between gap-3 text-[12.5px] font-medium text-[#F5B722] hover:text-[#FFCA3A] transition-colors">Purchase diagnostic <Arrow /></button>
             </div>
           </div>
         </div>
@@ -1272,6 +1263,36 @@ function Home({ go, openPurchase }) {
         </div>
       </section>
 
+      <section className="bg-white">
+        <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
+          <div className="grid lg:grid-cols-[1fr_1.15fr] gap-12 lg:gap-20 items-center">
+            <div>
+              <SectionHead eyebrow="Automated screening" title="Institutional-grade assessment, returned instantly." sub="Our system evaluates every opportunity against five weighted dimensions — legal foundation, financial substance, capital raise readiness, governance and investment readiness — and returns a clear decision with full rationale." />
+              <div className="mt-10 flex flex-wrap gap-3">
+                <Btn size="lg" onClick={() => go('businesses')}>Start your assessment <Arrow /></Btn>
+                <Btn size="lg" variant="ghost" onClick={() => go('fit')}>Find your pathway first</Btn>
+              </div>
+            </div>
+            <div className="bg-[#071224] p-8 lg:p-10 rounded-sm border border-[#F5B722]/20 glow">
+              <Micro light className="block mb-8">Decision Engine</Micro>
+              <div className="space-y-4">
+                {[
+                  { label: 'APPROVE', sub: 'Investment-Ready', color: '#F5B722', pct: 88 },
+                  { label: 'PROCEED WITH CONDITIONS', sub: 'Growth-Ready', color: '#E0A030', pct: 68 },
+                  { label: 'DECLINE', sub: 'Not Yet Ready', color: '#B8564F', pct: 42 },
+                ].map((d, i) => (
+                  <div key={i} className="p-4 rounded-sm border border-white/10 bg-white/[0.02]">
+                    <div className="flex items-center justify-between mb-3"><span className="text-[11px] font-bold tracking-[0.08em]" style={{ color: d.color }}>{d.label}</span><span className="text-[10.5px] text-white/40">{d.sub}</span></div>
+                    <div className="h-1 bg-white/10 rounded-full overflow-hidden"><div className="h-full rounded-full bar-grow" style={{ width: `${d.pct}%`, background: d.color }} /></div>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-6 text-[11.5px] leading-relaxed text-white/40">Scored on five weighted dimensions. Critical gates force decline regardless of total score.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="bg-[#F0F4F8]">
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
           <div className="grid lg:grid-cols-2 gap-8">
@@ -1299,7 +1320,7 @@ function Home({ go, openPurchase }) {
             <h2 className="serif text-[clamp(2.2rem,5.5vw,3.8rem)] leading-[1.08] text-white">Start where you are.<br /><span className="italic text-[#F5B722]">We'll take it from there.</span></h2>
             <div className="mt-12 flex flex-wrap gap-4">
               <Btn size="lg" variant="primary" onClick={() => go('fit')}>Find your capital pathway <Arrow /></Btn>
-              <Btn size="lg" variant="ghostLight" onClick={() => go('diagnostic')}>Enterprise Diagnostic</Btn>
+              <Btn size="lg" variant="ghostLight" onClick={() => go('opportunities')}>View the network</Btn>
             </div>
           </div>
         </div>
@@ -1309,7 +1330,7 @@ function Home({ go, openPurchase }) {
 }
 
 /* ============================================================
-   CAPITAL FIT FLOW (orientation only)
+   CAPITAL FIT — orientation
    ============================================================ */
 const FIT_QUESTIONS = [
   { key: 'capitalType', q: 'What type of capital are you seeking?', options: CAPITAL_TYPES, cols: 2 },
@@ -1332,7 +1353,6 @@ function CapitalFit({ go, onComplete }) {
   const next = () => { if (!canAdvance) return; setAnimating(true); setTimeout(() => { setAnimating(false); if (step < total - 1) setStep(step + 1); else setDone(true); }, 200); };
   const back = () => { if (step > 0) setStep(step - 1); };
   useEffect(() => { window.scrollTo(0, 0); }, [step, done]);
-
   if (done) {
     return (
       <div className="fadein bg-[#F0F4F8]">
@@ -1399,7 +1419,7 @@ function CapitalFit({ go, onComplete }) {
 }
 
 /* ============================================================
-   BUSINESS ACCESS — original 4-step form + payment inserted + assessment + engagement
+   BUSINESS ACCESS — original form + payment step + result + engagement
    ============================================================ */
 function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
   const [step, setStep] = useState(0); // 0-3 form, 4 = payment, 5 = result, 6 = engagement
@@ -1423,20 +1443,15 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
   const step3Ok = f.taxCompliance && f.regulatoryLicences && f.governance && f.shareholderAgreement && f.amlReadiness && f.pitchDeck && f.financialModel && f.ddPack && f.managementTeam && f.keyPersonRisk;
   const stepOk = [step0Ok, step1Ok, step2Ok, step3Ok];
   const completion = stepOk.filter(Boolean).length / stepOk.length;
-
   useEffect(() => { window.scrollTo(0, 0); }, [step, submitted]);
-
   const submissionFee = useMemo(() => getSubmissionFee(f.country), [f.country]);
-
   const handlePaymentConfirmed = () => setStep(5);
   const handleAssessmentSubmit = () => { if (assessment.decision === 'approve' || assessment.decision === 'conditional') setStep(6); else setSubmitted(true); };
-
   const steps = ['Business identity', 'Financial profile', 'Capital raise', 'Governance & readiness'];
 
   if (step === 6) {
     return <EngagementFlow assessment={assessment} formData={f} refCode={refCode} onCommenced={(record) => onEngagementCommenced(record)} onExit={() => go('home')} />;
   }
-
   if (step === 5) {
     return (
       <div className="fadein bg-[#F0F4F8]">
@@ -1450,7 +1465,6 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
       </div>
     );
   }
-
   if (step === 4) {
     return (
       <div className="fadein bg-[#F0F4F8]">
@@ -1462,7 +1476,7 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
             </button>
             <Micro className="block mb-6">Step 5 — Submission &amp; Assessment Fee</Micro>
             <h1 className="serif text-[clamp(2rem,4.5vw,3rem)] leading-[1.1] text-[#071224] mb-6">Pay the Submission &amp; Assessment Fee.</h1>
-            <p className="text-[15.5px] leading-relaxed text-[#071224]/55 mb-10 max-w-2xl">This non-refundable fee activates the platform assessment. Once your payment is recorded, the system screens your opportunity and returns an immediate decision.</p>
+            <p className="text-[15.5px] leading-relaxed text-[#071224]/55 mb-10 max-w-2xl">This non-refundable fee activates the platform assessment. Once your payment is recorded, the system screens your opportunity across five weighted dimensions and returns an immediate decision.</p>
             <div className="bg-white rounded-sm border border-[#071224]/8 p-6 lg:p-8">
               <PaymentFlow amount={submissionFee.amount} currency={submissionFee.currency} purpose="Opportunity Submission & Assessment Fee" purposeDetail={submissionFee.currency === 'ZMW' ? 'Non-refundable. Covers automated platform assessment for Zambian-registered businesses.' : 'Non-refundable. Covers automated platform assessment.'} applicant={{ firstName: f.contactName.split(' ')[0] || f.contactName, lastName: f.contactName.split(' ').slice(1).join(' '), email: f.contactEmail, phone: '', country: f.country, company: f.company }} receiptPrefix="MLG-SUB" onConfirmed={handlePaymentConfirmed} />
             </div>
@@ -1471,7 +1485,6 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
       </div>
     );
   }
-
   return (
     <div className="fadein bg-[#F0F4F8]">
       <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-20">
@@ -1494,7 +1507,6 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
                 </button>
               ))}
             </div>
-
             <div key={step} className="fadein-s space-y-8">
               {step === 0 && (
                 <>
@@ -1580,7 +1592,6 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
                 </>
               )}
             </div>
-
             <div className="mt-12 flex items-center gap-4">
               {step > 0 && <Btn variant="ghost" onClick={() => setStep(step - 1)}>Back</Btn>}
               {step < 3 ? (
@@ -1634,7 +1645,6 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced }) {
 function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCode, openPurchase, formData }) {
   const { decision, tierLabel, total, pct, dims, critical, positives, conditions, flags } = assessment;
   const proceedToEngagement = decision === 'approve' || decision === 'conditional';
-
   if (submitted) {
     return (
       <div className="fadein bg-[#F0F4F8]">
@@ -1652,7 +1662,6 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
       </div>
     );
   }
-
   return (
     <div className="fadein bg-[#F0F4F8]">
       <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-14 lg:py-24">
@@ -1668,7 +1677,6 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
               {decision === 'conditional' && 'Your opportunity can proceed, subject to conditions.'}
               {decision === 'decline' && 'Your opportunity is not yet investment-ready.'}
             </h1>
-
             <div className="bg-white rounded-sm border border-[#071224]/5 p-6 lg:p-8 mb-8">
               <div className="flex items-baseline justify-between mb-4">
                 <span className="text-[12px] tracking-[0.14em] uppercase text-[#071224]/50 font-semibold">Assessment score</span>
@@ -1683,7 +1691,6 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
                 <span>0</span><span>58 · Conditional</span><span>78 · Approved</span><span>100</span>
               </div>
             </div>
-
             <Micro className="block mb-6">Dimension breakdown</Micro>
             <div className="space-y-4 mb-10">
               {dims.map((d, i) => {
@@ -1691,16 +1698,12 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
                 const color = dpct >= 78 ? '#F5B722' : dpct >= 58 ? '#E0A030' : '#B8564F';
                 return (
                   <div key={i} className="bg-white p-5 lg:p-6 rounded-sm border border-[#071224]/5">
-                    <div className="flex items-baseline justify-between gap-4 mb-3">
-                      <span className="text-[13.5px] font-semibold text-[#071224]">{d.name}</span>
-                      <span className="text-[12px] text-[#071224]/50 tabular-nums whitespace-nowrap">{d.points} / {d.max}</span>
-                    </div>
+                    <div className="flex items-baseline justify-between gap-4 mb-3"><span className="text-[13.5px] font-semibold text-[#071224]">{d.name}</span><span className="text-[12px] text-[#071224]/50 tabular-nums whitespace-nowrap">{d.points} / {d.max}</span></div>
                     <div className="h-1.5 bg-[#071224]/8 rounded-full overflow-hidden"><div className="h-full rounded-full bar-grow" style={{ width: `${dpct}%`, background: color, animationDelay: `${i * 0.08}s` }} /></div>
                   </div>
                 );
               })}
             </div>
-
             {critical.length > 0 && (
               <div className="mb-8 bg-[#B8564F]/5 border border-[#B8564F]/20 rounded-sm p-6 lg:p-7">
                 <p className="text-[11px] tracking-[0.14em] uppercase text-[#B8564F] font-semibold mb-4">Critical gates failed</p>
@@ -1709,7 +1712,6 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
                 </ul>
               </div>
             )}
-
             {positives.length > 0 && (
               <div className="mb-8">
                 <Micro className="block mb-4">Strengths identified</Micro>
@@ -1718,7 +1720,6 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
                 </ul>
               </div>
             )}
-
             {conditions.length > 0 && (
               <div className="mb-8 bg-[#F5B722]/8 border border-[#F5B722]/30 rounded-sm p-6 lg:p-7">
                 <p className="text-[11px] tracking-[0.14em] uppercase text-[#B8860B] font-semibold mb-5">Conditions to proceed</p>
@@ -1727,7 +1728,6 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
                 </ol>
               </div>
             )}
-
             {proceedToEngagement ? (
               <div className="mt-10 relative overflow-hidden rounded-sm border border-[#F5B722]/40 bg-gradient-to-br from-[#071224] to-[#0F203A] p-6 lg:p-8">
                 <div className="absolute top-0 right-0 w-56 h-56 bg-[#F5B722]/10 rounded-full blur-[80px] pointer-events-none"></div>
@@ -1746,7 +1746,6 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
                 <Btn onClick={() => openPurchase(30, 'assessment-result')}>Purchase Enterprise Diagnostic — US$50 <Arrow /></Btn>
               </div>
             )}
-
             <div className="mt-10 flex flex-wrap gap-4">
               {proceedToEngagement ? (
                 <Btn size="lg" onClick={onSubmit} disabled={!f.canSubmit}>{decision === 'conditional' ? 'Proceed to Engagement (conditions acknowledged)' : 'Proceed to Engagement'} <Arrow /></Btn>
@@ -1781,7 +1780,7 @@ function AssessmentResult({ assessment, f, onRevise, onSubmit, submitted, refCod
 }
 
 /* ============================================================
-   ENGAGEMENT FLOW — proposal + letter + real payment + commenced
+   ENGAGEMENT FLOW — Proposal → Letter → Payment → Commenced
    ============================================================ */
 function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) {
   const [step, setStep] = useState(0);
@@ -1791,27 +1790,17 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
   const [agreeProposal, setAgreeProposal] = useState(false);
   const [applyCredit, setApplyCredit] = useState(false);
   const [payData, setPayData] = useState(null);
-
   const quote = useMemo(() => computeEngagementFee(formData, assessment), [formData, assessment]);
   const creditAvailable = 40;
   const credit = applyCredit ? creditAvailable : 0;
   const payableNum = Math.max(quote.fee - credit, 0);
   const payableStr = 'US$' + payableNum.toLocaleString('en-US');
-
   const today = useMemo(() => new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }), []);
   const engRef = 'ENG-' + refCode.replace('MLG-', '');
   const letterSigned = signName.trim().length > 2 && agreeLetter;
-
   useEffect(() => { window.scrollTo(0, 0); }, [step]);
-
-  const handlePaymentConfirmed = (payment) => {
-    setPayData(payment);
-    setStep(3);
-    onCommenced({ reference: engRef, paymentRef: payment.receiptNo, fee: quote.fee, creditApplied: credit, paid: payableNum, tier: assessment.tierLabel, geoBand: quote.band.label, complexity: quote.complexity, signedBy: signName, signedRole: signRole, date: today, company: formData.company });
-  };
-
+  const handlePaymentConfirmed = (payment) => { setPayData(payment); setStep(3); onCommenced({ reference: engRef, paymentRef: payment.receiptNo, fee: quote.fee, creditApplied: credit, paid: payableNum, tier: assessment.tierLabel, geoBand: quote.band.label, complexity: quote.complexity, signedBy: signName, signedRole: signRole, date: today, company: formData.company }); };
   const steps = ['Engagement Proposal', 'Engagement Letter', 'Engagement Fee', 'Commenced'];
-
   return (
     <div className="fadein bg-[#F0F4F8] min-h-screen">
       <div className="bg-[#0F203A] border-b border-[#F5B722]/20">
@@ -1824,7 +1813,6 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
           </div>
         </div>
       </div>
-
       <div className="bg-white border-b border-[#071224]/8">
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-6">
           <div className="flex flex-wrap gap-x-8 gap-y-3">
@@ -1837,7 +1825,6 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
           </div>
         </div>
       </div>
-
       <section className="max-w-[1320px] mx-auto px-6 lg:px-10 py-12 lg:py-16">
         {step === 0 && (
           <div className="grid lg:grid-cols-[1.5fr_1fr] gap-10 lg:gap-14 items-start">
@@ -1956,7 +1943,6 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
             </aside>
           </div>
         )}
-
         {step === 1 && (
           <div className="grid lg:grid-cols-[1.5fr_1fr] gap-10 lg:gap-14 items-start">
             <div className="bg-white paper rounded-sm overflow-hidden">
@@ -2024,13 +2010,11 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
             </aside>
           </div>
         )}
-
         {step === 2 && (
           <div className="max-w-3xl mx-auto">
             <Micro className="block mb-6">Step 3 of 4 — Engagement Fee</Micro>
             <h1 className="serif text-[clamp(1.9rem,4.5vw,2.8rem)] leading-[1.12] text-[#071224] mb-5">Pay the Engagement Fee to commence.</h1>
             <p className="text-[15.5px] leading-relaxed text-[#071224]/55 mb-8">The Engagement Fee activates the platform capital-access and investor engagement process. It is payable upon commencement and is not contingent upon successful capital mobilisation.</p>
-
             <div className="bg-[#071224] rounded-sm p-6 mb-6 text-white">
               <Micro light className="block mb-5">Engagement Fee summary</Micro>
               <div className="space-y-0">
@@ -2042,7 +2026,6 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                 <div className="flex justify-between gap-6 py-5"><span className="text-[14px] text-white font-semibold">Payable now</span><span className="serif text-[28px] text-[#F5B722] leading-none">{payableStr}</span></div>
               </div>
             </div>
-
             {!applyCredit && (
               <button type="button" onClick={() => setApplyCredit(true)} className="w-full text-left p-4 mb-6 rounded-sm border border-[#F5B722]/30 bg-[#F5B722]/8 hover:bg-[#F5B722]/12 transition-colors flex items-start gap-4">
                 <span className="w-5 h-5 shrink-0 rounded-sm border-2 border-[#F5B722] mt-0.5"></span>
@@ -2056,20 +2039,17 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                 <button onClick={() => setApplyCredit(false)} className="text-[11px] text-[#071224]/45 hover:text-[#071224] shrink-0">Remove</button>
               </div>
             )}
-
             <div className="bg-white rounded-sm border border-[#071224]/8 p-6 lg:p-8">
               <PaymentFlow amount={payableStr} currency="USD" purpose={'Engagement Fee · ' + assessment.tierLabel} purposeDetail={'Non-refundable. Payable upon commencement. Covers activation of platform capital-access and investor engagement process.'} applicant={{ firstName: formData.contactName.split(' ')[0] || formData.contactName, lastName: formData.contactName.split(' ').slice(1).join(' '), email: formData.contactEmail, phone: '', country: formData.country, company: formData.company }} receiptPrefix="MLG-ENG" onConfirmed={handlePaymentConfirmed} />
             </div>
           </div>
         )}
-
         {step === 3 && payData && (
           <div className="max-w-3xl mx-auto">
             <div className="w-16 h-16 rounded-full bg-[#F5B722] flex items-center justify-center mb-8 shadow-[0_0_40px_rgba(245,183,34,0.4)]"><svg width="26" height="22" viewBox="0 0 22 18" fill="none"><path d="M1 9L8 16L21 2" stroke="#071224" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg></div>
             <Micro className="block mb-5">Engagement commenced — {engRef}</Micro>
             <h1 className="serif text-[clamp(2rem,5vw,3.2rem)] leading-[1.1] text-[#071224] mb-6">Your engagement has commenced.</h1>
             <p className="text-[16px] leading-relaxed text-[#071224]/55 mb-12">Payment recorded with receipt {payData.receiptNo}. Your opportunity is now active in the ML Gateway private-capital network.</p>
-
             <div className="bg-white rounded-sm border border-[#071224]/8 overflow-hidden mb-8">
               <div className="px-6 lg:px-8 py-5 bg-[#071224] flex items-center justify-between flex-wrap gap-3"><span className="text-[10px] tracking-[0.16em] uppercase text-[#F5B722] font-semibold">Engagement record</span><span className="text-[10px] text-white/40 font-mono">{engRef}</span></div>
               <div className="p-6 lg:p-8">
@@ -2078,7 +2058,6 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                 ))}
               </div>
             </div>
-
             <div className="bg-[#071224] p-6 lg:p-8 rounded-sm text-white mb-8">
               <Micro light className="block mb-6">What happens next</Micro>
               <div className="space-y-5">
@@ -2091,7 +2070,6 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                 ].map((s, i) => (<div key={i} className="flex gap-4"><span className="serif text-[14px] text-[#F5B722] w-6 shrink-0 pt-0.5 font-bold">{String(i + 1).padStart(2, '0')}</span><div><p className="text-[13.5px] font-semibold text-white mb-1">{s.t}</p><p className="text-[12.5px] leading-relaxed text-white/45">{s.d}</p></div></div>))}
               </div>
             </div>
-
             <div className="flex flex-wrap gap-4"><Btn size="lg" onClick={onExit}>Return to ML Gateway <Arrow /></Btn></div>
           </div>
         )}
@@ -2281,14 +2259,13 @@ function DiagnosticPage({ go, openPurchase }) {
 }
 
 /* ============================================================
-   INVESTOR ACCESS (unchanged)
+   INVESTOR ACCESS
    ============================================================ */
 const INVESTOR_SECTORS = SECTORS;
 const OWNERSHIP = ['Minority', 'Significant minority', 'Majority / control', 'Flexible', 'No preference'];
 const RETURN_EXP = ['Capital preservation', 'Income', 'Balanced', 'Growth', 'High growth', 'Impact-first'];
 const HORIZON = ['1 – 3 years', '3 – 5 years', '5 – 7 years', '7 – 10 years', '10 years +'];
 const INVEST_TYPES = ['Equity', 'Quasi-equity', 'Mezzanine', 'Senior debt', 'Structured / hybrid', 'Fund commitment', 'Co-investment'];
-
 function InvestorAccess({ go }) {
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
@@ -2392,7 +2369,7 @@ function InvestorAccess({ go }) {
 }
 
 /* ============================================================
-   CAPITAL NETWORK (unchanged)
+   CAPITAL NETWORK
    ============================================================ */
 function Network({ go }) {
   const [submitted, setSubmitted] = useState(false);
@@ -2731,12 +2708,10 @@ function App() {
   const [modalCourtesy, setModalCourtesy] = useState(null);
   const [modalContext, setModalContext] = useState('');
   const [engagement, setEngagement] = useState(null);
-
   const go = useCallback((r) => { setRoute(r); window.scrollTo({ top: 0, behavior: 'auto' }); }, []);
   const openPurchase = useCallback((courtesyAmount, context) => { setModalCourtesy(courtesyAmount ?? null); setModalContext(context || ''); setModalOpen(true); }, []);
   const handleFitComplete = (answers) => { setFitAnswers(answers); go('businesses'); };
   const handleEngagementCommenced = (record) => setEngagement(record);
-
   const view = () => {
     switch (route) {
       case 'fit': return <CapitalFit go={go} onComplete={handleFitComplete} />;
@@ -2751,7 +2726,6 @@ function App() {
       default: return <Home go={go} openPurchase={openPurchase} />;
     }
   };
-
   return (
     <div className="min-h-screen bg-[#F0F4F8] flex flex-col">
       <Nav route={route} go={go} engagementActive={!!engagement} />
@@ -2762,7 +2736,6 @@ function App() {
     </div>
   );
 }
-
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
