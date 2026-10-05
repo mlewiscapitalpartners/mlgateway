@@ -277,12 +277,13 @@ const ADMIN_WHATSAPP = '260768526191';
 const VERIFY_BASE_URL = "https://mlgateway.com/verify";
 
 const FIREBASE_CONFIG = {
-  apiKey: "YOUR_ML_GATEWAY_FIREBASE_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "000000000000",
-  appId: "1:000000000000:web:0000000000000000000000"
+  apiKey: "AIzaSyC_M_jDVBN19aXKkMjxWdw502QZttzsP3A",
+  authDomain: "mlewiscapitalpartners-bee5d.firebaseapp.com",
+  projectId: "mlewiscapitalpartners-bee5d",
+  storageBucket: "mlewiscapitalpartners-bee5d.firebasestorage.app",
+  messagingSenderId: "523217241209",
+  appId: "1:523217241209:web:174672286c9a4df15740a8",
+  measurementId: "G-GBYCKPXPH5"
 };
 const IS_FIREBASE_CONFIGURED = !!(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey.indexOf('YOUR_') !== 0);
 
@@ -3271,17 +3272,44 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced, onLi
 
   const handlePaymentConfirmed = () => setStep(5);
 
-  const handleSubmit = () => {
-    if (assessment.decision === 'approve' || assessment.decision === 'conditional') {
-      if (!listedRef.current) {
-        listedRef.current = true;
-        if (onListCurated) onListCurated(assessment, f, refCode);
-      }
-      setStep(6);
-    } else {
-      setSubmitted(true);
+  const handleSubmit = async () => {
+  // Persist the full submission to Firestore
+  const fb = await firebaseReady;
+  if (fb) {
+    try {
+      await FB.setDoc(FB.doc(fbDb, 'submissions', refCode), {
+        refCode,
+        company: f.company,
+        country: f.country,
+        sector: f.sector,
+        stage: f.stage,
+        amount: f.amount,
+        capitalType: f.capitalType,
+        purposes: f.purposes,
+        contactName: f.contactName,
+        contactEmail: f.contactEmail,
+        contactRole: f.contactRole,
+        assessmentDecision: assessment.decision,
+        assessmentTier: assessment.tierLabel,
+        assessmentScore: assessment.total,
+        conditions: assessment.conditions,
+        submittedAt: FB.serverTimestamp(),
+      }, { merge: true });
+    } catch (e) {
+      console.warn('[MLG] Could not persist submission:', e);
     }
-  };
+  }
+
+  if (assessment.decision === 'approve' || assessment.decision === 'conditional') {
+    if (!listedRef.current) {
+      listedRef.current = true;
+      if (onListCurated) onListCurated(assessment, f, refCode);
+    }
+    setStep(6);
+  } else {
+    setSubmitted(true);
+  }
+};
 
   const steps = ['Business identity', 'Financial profile', 'Capital raise', 'Governance & readiness'];
 
