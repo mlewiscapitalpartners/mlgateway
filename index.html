@@ -216,6 +216,62 @@ const { useState, useMemo, useEffect, useCallback, useRef } = React;
    ============================================================ */
 const ADMIN_WHATSAPP = '260768526191';
 const VERIFY_BASE_URL = "https://mlgateway.com/verify";
+  /* ── WhatsApp deep-link helpers ────────────────────────────────
+   On mobile, `wa.me` serves an interstitial "Open app" page.
+   The `whatsapp://` scheme bypasses it and launches the app
+   directly with the message pre-filled.                          */
+function isMobileDevice() {
+  if (typeof navigator === 'undefined') return false;
+  const ua = (navigator.userAgent || navigator.vendor || '').toLowerCase();
+  return /android|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(ua);
+}
+
+function buildWhatsappUrl(message, phone) {
+  const p = phone || ADMIN_WHATSAPP;
+  const encoded = encodeURIComponent(message);
+  if (isMobileDevice()) {
+    // Native app scheme — opens WhatsApp directly on the phone
+    return 'whatsapp://send?phone=' + p + '&text=' + encoded;
+  }
+  // Desktop — opens WhatsApp Web / Desktop
+  return 'https://wa.me/' + p + '?text=' + encoded;
+}
+
+/* Launch WhatsApp. On mobile, uses a programmatic anchor click
+   on a `whatsapp://` link (the only reliable way to fire a custom
+   URL scheme from JavaScript). On desktop, returns a placeholder
+   window that the caller navigates once the URL is ready. */
+function launchWhatsapp(message, phone) {
+  const url = buildWhatsappUrl(message, phone);
+  if (isMobileDevice()) {
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.style.display = 'none';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return { opened: true, url, placeholder: null };
+    } catch (e) {
+      console.warn('[MLG] Mobile deep-link click failed:', e);
+      return { opened: false, url, placeholder: null };
+    }
+  }
+  let placeholder = null;
+  try {
+    placeholder = window.open('about:blank', '_blank');
+    if (placeholder) {
+      try {
+        placeholder.document.write('<title>Opening WhatsApp…</title><body style="font-family:system-ui;padding:24px;color:#071224">Opening WhatsApp…</body>');
+      } catch (e) {}
+    }
+  } catch (e) {
+    console.warn('[MLG] Placeholder window blocked:', e);
+  }
+  return { opened: false, url, placeholder };
+}
 
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyC_M_jDVBN19aXKkMjxWdw502QZttzsP3A",
@@ -1019,7 +1075,7 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
     return lines.join('\n');
   };
 
-  const handleConfirm = async () => {
+    const handleConfirm = async () => {
     setErrorMsg('');
     if (!method) { setErrorMsg('Please select a payment method first.'); return; }
     if (!senderName.trim()) { setErrorMsg('Please enter the name on the payment.'); return; }
@@ -1027,40 +1083,54 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
     if (!userRef.trim()) { setErrorMsg('Please enter your transaction reference.'); return; }
     if (!agree) { setErrorMsg('Please tick the confirmation checkbox.'); return; }
 
-    // ── Open a placeholder tab SYNCHRONOUSLY while the user gesture is still active.
-    //    If a popup blocker rejects this, waWindow is null and the visible green
-    //    button (a real <a href>) remains the fallback path.
+    // ── Open a placeholder tab SYNCHRONOUSLY while the user gesture is
+    //    still active. Used only on desktop — on mobile we deep-link.
     let waWindow = null;
-    try {
-      waWindow = window.open('about:blank', '_blank');
-    } catch (e) {
-      console.warn('[MLG] Placeholder window blocked:', e);
-    }
-    if (waWindow) {
+    if (!isMobileDevice()) {
       try {
-        waWindow.document.write('<title>Opening WhatsApp…</title><body style="font-family:system-ui;padding:24px;color:#071224">Opening WhatsApp…</body>');
-      } catch (e) {}
+        waWindow = window.open('about:blank', '_blank');
+        if (waWindow) {
+          try {
+            waWindow.document.write('<title>Opening WhatsApp…</title><body style="font-family:system-ui;padding:24px;color:#071224">Opening WhatsApp…</body>');
+          } catch (e) {}
+        }
+      } catch (e) {
+        console.warn('[MLG] Placeholder window blocked:', e);
+      }
     }
 
     const rcpt = await generateReceiptNumber(receiptPrefix || 'MLG');
     const now = new Date();
     const dt = now.toLocaleString('en-GB', { year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit' });
     setReceiptNo(rcpt); setReceiptDate(dt);
-    const msg = buildWhatsappMessage(rcpt, dt);
-    const url = 'https://wa.me/' + ADMIN_WHATSAPP + '?text=' + encodeURIComponent(msg);
-    setWhatsappUrl(url); setConfirmed(true);
 
-    // ── Navigate the placeholder window to WhatsApp now that we have the URL
-    if (waWindow && !waWindow.closed) {
-      try {
-        waWindow.location.href = url;
-        setWhatsappOpened(true);
-      } catch (e) {
-        console.warn('[MLG] Could not navigate placeholder window:', e);
+    const msg = buildWhatsappMessage(rcpt, dt);
+
+    // ── Mobile: deep-link directly into the WhatsApp app.
+    //    Desktop: navigate the placeholder tab to WhatsApp Web.
+    if (isMobileDevice()) {
+      const result = launchWhatsapp(msg);
+      setWhatsappUrl(result.url);
+      setWhatsappOpened(result.opened);
+      if (!result.opened) {
+        console.warn('[MLG] Mobile deep-link did not fire — user will use the green button.');
       }
     } else {
-      console.warn('[MLG] WhatsApp auto-open was blocked — user will use the visible green button.');
+      const url = buildWhatsappUrl(msg);
+      setWhatsappUrl(url);
+      if (waWindow && !waWindow.closed) {
+        try {
+          waWindow.location.href = url;
+          setWhatsappOpened(true);
+        } catch (e) {
+          console.warn('[MLG] Could not navigate placeholder window:', e);
+        }
+      } else {
+        console.warn('[MLG] WhatsApp auto-open was blocked — user will use the visible green button.');
+      }
     }
+
+    setConfirmed(true);
 
     const m = PAYMENT_METHODS[method];
 
@@ -1106,7 +1176,6 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
 
     if (onConfirmed) onConfirmed(cleanData);
   };
-
   const copyWhatsappMessage = () => {
     const text = buildWhatsappMessage(receiptNo, receiptDate);
     const done = () => { setCopiedMessage(true); setTimeout(() => setCopiedMessage(false), 2500); };
