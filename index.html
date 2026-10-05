@@ -15,43 +15,13 @@
 <style>
   :root { --navy: #071224; --yellow: #F5B722; --light: #F0F4F8; }
 
-  /* ── MOBILE STABILITY: prevent horizontal overflow & text cut-off ── */
-  html {
-    overflow-x: hidden;
-    -webkit-text-size-adjust: 100%;
-    text-size-adjust: 100%;
-    text-rendering: optimizeLegibility;
-  }
-  body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    background-color: var(--light);
-    overflow-x: hidden;
-    width: 100%;
-    max-width: 100vw;
-    position: relative;
-  }
-  #root {
-    overflow-x: hidden;
-    width: 100%;
-    min-width: 0;
-  }
-  *, *::before, *::after {
-    box-sizing: border-box;
-    min-width: 0;
-  }
-  h1, h2, h3, h4, h5, h6, p, span, a, li, div {
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-  }
-  button, a {
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-  img, svg, video, canvas, iframe, embed, object {
-    max-width: 100%;
-    height: auto;
-  }
+  html { overflow-x: hidden; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; text-rendering: optimizeLegibility; }
+  body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; background-color: var(--light); overflow-x: hidden; width: 100%; max-width: 100vw; position: relative; }
+  #root { overflow-x: hidden; width: 100%; min-width: 0; }
+  *, *::before, *::after { box-sizing: border-box; min-width: 0; }
+  h1, h2, h3, h4, h5, h6, p, span, a, li, div { overflow-wrap: break-word; word-wrap: break-word; }
+  button, a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  img, svg, video, canvas, iframe, embed, object { max-width: 100%; height: auto; }
 
   .serif { font-family: 'Playfair Display', Georgia, serif; }
   .micro { font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 600; }
@@ -83,33 +53,18 @@
   .clause-num { font-variant-numeric: tabular-nums; }
   .paper { box-shadow: 0 10px 40px -10px rgba(7,18,36,0.15), 0 2px 8px rgba(7,18,36,0.04); }
 
-  /* ── DISABLE LAYOUT-SHIFTING ANIMATIONS ON MOBILE ── */
   @media (max-width: 768px) {
-    .fadein, .fadein-s, .slide-up {
-      animation: none !important;
-      opacity: 1 !important;
-      transform: none !important;
-    }
+    .fadein, .fadein-s, .slide-up { animation: none !important; opacity: 1 !important; transform: none !important; }
     .pulse-soft { animation: none !important; opacity: 1 !important; }
     .bar-grow { animation-duration: 0.4s !important; }
   }
 
-  /* ── RESPECT REDUCED MOTION ── */
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   }
 
-  /* ── SMOOTH SCROLL ONLY ON LARGE SCREENS ── */
-  @media (min-width: 1024px) {
-    html { scroll-behavior: smooth; }
-  }
+  @media (min-width: 1024px) { html { scroll-behavior: smooth; } }
 
-  /* ── PAYMENT FLOW STYLES ── */
   .pay-amount-banner{background:linear-gradient(135deg,#071224 0%,#0F203A 100%);color:#fff;border-radius:14px;padding:22px 24px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden}
   .pay-amount-banner .pab-label{font-size:11px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#F5B722;margin-bottom:6px;position:relative;z-index:2}
   .pay-amount-banner .pab-amount{font-family:'Playfair Display',Georgia,serif;font-size:clamp(2rem,4vw,2.6rem);font-weight:800;color:#F5B722;line-height:1;position:relative;z-index:2}
@@ -244,7 +199,6 @@
   .receipt-check-result{font-size:12.5px;color:#4A3580;margin-top:10px;padding:10px 14px;border-radius:8px;background:#fff;border-left:3px solid #7C5FCC;display:none}
   .receipt-check-result.show{display:block}
 
-  /* ── RECEIPT PRINT MODE ── */
   @media print {
     body.print-receipt-mode * { visibility: hidden !important; }
     body.print-receipt-mode .printable-receipt,
@@ -252,7 +206,6 @@
     body.print-receipt-mode .printable-receipt { position: absolute; left:0; top:0; width:100%; padding:20px; box-shadow:none; }
   }
 
-  /* ── MOBILE-SPECIFIC STABILITY OVERRIDES ── */
   @media (max-width: 640px) {
     [class*="blur-["] { --tw-blur: blur(40px); }
     .backdrop-blur-md, .backdrop-blur, .backdrop-blur-sm { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
@@ -296,11 +249,28 @@ const firebaseReady = (async function initFirebase(){
       import('https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js')
     ]);
     const app = appMod.initializeApp(FIREBASE_CONFIG);
-    fbDb = fsMod.getFirestore(app);
-    FB = { doc: fsMod.doc, getDoc: fsMod.getDoc, setDoc: fsMod.setDoc, runTransaction: fsMod.runTransaction, serverTimestamp: fsMod.serverTimestamp };
-    console.log('[MLG] Firestore ready');
+    fbDb = fsMod.initializeFirestore(app, {
+      ignoreUndefinedProperties: true,
+      experimentalAutoDetectLongPolling: true
+    });
+    FB = {
+      doc: fsMod.doc,
+      getDoc: fsMod.getDoc,
+      setDoc: fsMod.setDoc,
+      runTransaction: fsMod.runTransaction,
+      serverTimestamp: fsMod.serverTimestamp,
+      collection: fsMod.collection,
+      query: fsMod.query,
+      where: fsMod.where,
+      getDocs: fsMod.getDocs,
+      limit: fsMod.limit
+    };
+    console.log('[MLG] ✅ Firestore ready (ignoreUndefinedProperties: true)');
     return FB;
-  } catch(e) { console.warn('[MLG] Firebase init error:', e); return null; }
+  } catch(e) {
+    console.error('[MLG] ❌ Firebase init error:', e);
+    return null;
+  }
 })();
 
 const PAYMENT_METHODS = {
@@ -463,6 +433,62 @@ async function generateReceiptNumber(prefix){
     } catch(e) { console.warn('[MLG] Receipt counter failed:', e); }
   }
   return pfx + '-' + year + '-' + String(Math.floor(Math.random() * 90000) + 10000);
+}
+
+/* Strip undefined / null / '' — Firestore rejects undefined */
+function sanitizeForFirestore(obj){
+  const out = {};
+  Object.entries(obj).forEach(([k, v]) => {
+    if (v === undefined || v === null) return;
+    if (typeof v === 'string' && v.trim() === '') return;
+    if (Array.isArray(v) && v.length === 0) return;
+    out[k] = v;
+  });
+  return out;
+}
+
+/* Look up a returning applicant by email, company, or phone in the applicant_index collection */
+async function findExistingApplicant({ email, company, phone }) {
+  const fb = await firebaseReady;
+  if (!fb) return null;
+  try {
+    if (email && email.includes('@') && email.trim().length > 4) {
+      const emailKey = email.toLowerCase().trim();
+      const snap = await FB.getDoc(FB.doc(fbDb, 'applicant_index', emailKey));
+      if (snap.exists()) {
+        console.log('[MLG] Returning applicant found by email:', emailKey);
+        return { id: snap.id, ...snap.data(), matchedBy: 'email' };
+      }
+    }
+    if (company && company.trim().length > 2) {
+      const q = FB.query(
+        FB.collection(fbDb, 'applicant_index'),
+        FB.where('company', '==', company.trim()),
+        FB.limit(1)
+      );
+      const snap = await FB.getDocs(q);
+      if (!snap.empty) {
+        console.log('[MLG] Returning applicant found by company:', company);
+        return { id: snap.docs[0].id, ...snap.docs[0].data(), matchedBy: 'company' };
+      }
+    }
+    if (phone && phone.trim().length > 5) {
+      const q = FB.query(
+        FB.collection(fbDb, 'applicant_index'),
+        FB.where('phone', '==', phone.trim()),
+        FB.limit(1)
+      );
+      const snap = await FB.getDocs(q);
+      if (!snap.empty) {
+        console.log('[MLG] Returning applicant found by phone:', phone);
+        return { id: snap.docs[0].id, ...snap.docs[0].data(), matchedBy: 'phone' };
+      }
+    }
+    return null;
+  } catch (e) {
+    console.warn('[MLG] findExistingApplicant failed:', e && e.code, e && e.message);
+    return null;
+  }
 }
 
 /* ============================================================
@@ -786,8 +812,8 @@ function Label({ children, hint, required }) {
 
 const inputCls = "w-full bg-white border border-[#071224]/15 rounded-sm px-4 py-3 text-[14px] text-[#071224] placeholder-[#071224]/25 transition-all duration-200 focus:border-[#F5B722] focus:ring-1 focus:ring-[#F5B722]/30 hover:border-[#071224]/30";
 
-function TextInput({ value, onChange, placeholder, type = 'text' }) {
-  return <input type={type} value={value || ''} onChange={e => onChange(e.target.value)} placeholder={placeholder} className={inputCls} />;
+function TextInput({ value, onChange, onBlur, placeholder, type = 'text' }) {
+  return <input type={type} value={value || ''} onChange={e => onChange(e.target.value)} onBlur={onBlur} placeholder={placeholder} className={inputCls} />;
 }
 
 function TextArea({ value, onChange, placeholder, rows = 4 }) {
@@ -982,6 +1008,7 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [checkRef, setCheckRef] = useState('');
   const [checkResult, setCheckResult] = useState('');
+  const [cloudSaved, setCloudSaved] = useState(null);
 
   const copyText = (text, key) => {
     const done = () => { setCopied(key); setTimeout(() => setCopied(''), 1500); };
@@ -1027,16 +1054,48 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
     const url = 'https://wa.me/' + ADMIN_WHATSAPP + '?text=' + encodeURIComponent(msg);
     setWhatsappUrl(url); setConfirmed(true);
     const m = PAYMENT_METHODS[method];
-    const paymentData = {
-      receiptNo: rcpt, receiptDate: dt, amount, currency, purpose,
-      method: m.label, transactionRef: userRef, senderName, senderContact,
-      applicantName: (applicant.firstName + ' ' + applicant.lastName).trim(),
-      applicantEmail: applicant.email, applicantCountry: applicant.country, applicantCompany: applicant.company,
-      recipientAccount: m.recipientAccount, status: 'pending'
+
+    const rawData = {
+      receiptNo: rcpt,
+      receiptDate: dt,
+      amount: amount,
+      currency: currency,
+      purpose: purpose,
+      method: m.label,
+      transactionRef: userRef,
+      senderName: senderName,
+      senderContact: senderContact,
+      applicantName: ((applicant.firstName || '') + ' ' + (applicant.lastName || '')).trim(),
+      applicantEmail: applicant.email,
+      applicantCountry: applicant.country,
+      applicantCompany: applicant.company,
+      recipientAccount: m.recipientAccount,
+      status: 'pending',
+      source: receiptPrefix || 'MLG'
     };
+    const cleanData = sanitizeForFirestore(rawData);
+
     const fb = await firebaseReady;
-    if (fb) { try { await FB.setDoc(FB.doc(fbDb, 'receipts', rcpt), { ...paymentData, createdAt: FB.serverTimestamp() }, { merge: true }); } catch(e) { console.warn('[MLG] Could not save receipt:', e); } }
-    if (onConfirmed) onConfirmed(paymentData);
+    if (fb) {
+      try {
+        await FB.setDoc(
+          FB.doc(fbDb, 'receipts', rcpt),
+          { ...cleanData, createdAt: FB.serverTimestamp() },
+          { merge: true }
+        );
+        console.log('[MLG] ✅ Receipt saved to Firestore:', rcpt, cleanData);
+        setCloudSaved('ok');
+      } catch (e) {
+        console.error('[MLG] ❌ Receipt write FAILED:', e && e.code, e && e.message, e);
+        setCloudSaved('fail');
+        setErrorMsg('Receipt saved locally. Cloud sync failed (' + ((e && e.code) || (e && e.message) || 'unknown') + '). Please send proof to WhatsApp.');
+      }
+    } else {
+      console.warn('[MLG] Firebase not ready — receipt saved locally only.');
+      setCloudSaved('fail');
+    }
+
+    if (onConfirmed) onConfirmed(cleanData);
     setTimeout(() => { try { window.open(url, '_blank'); } catch(err) {} }, 350);
   };
 
@@ -1083,7 +1142,7 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
   };
 
   if (confirmed) {
-    const receiptData = { receiptNo, receiptDate, amount, currency, purpose, method: PAYMENT_METHODS[method].label, transactionRef: userRef, senderName, senderContact, applicantName: (applicant.firstName + ' ' + applicant.lastName).trim(), applicantEmail: applicant.email, applicantCountry: applicant.country, recipientAccount: PAYMENT_METHODS[method].recipientAccount };
+    const receiptData = { receiptNo, receiptDate, amount, currency, purpose, method: PAYMENT_METHODS[method].label, transactionRef: userRef, senderName, senderContact, applicantName: ((applicant.firstName || '') + ' ' + (applicant.lastName || '')).trim(), applicantEmail: applicant.email, applicantCountry: applicant.country, recipientAccount: PAYMENT_METHODS[method].recipientAccount };
     return (
       <div className="fadein">
         <div className="payment-success">
@@ -1091,6 +1150,18 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
           <h4>Payment Recorded</h4>
           <p>Receipt Reference: <strong>{receiptNo}</strong></p>
           <p style={{ fontSize: 12.5, color: 'rgba(7,18,36,.6)', marginTop: 6 }}>Your receipt has been generated below. Download it for your records.</p>
+          {cloudSaved === 'ok' && (
+            <p style={{ fontSize: 11.5, color: '#075E54', marginTop: 4 }}>
+              <i className="fas fa-cloud-upload-alt" style={{ marginRight: 6 }}></i>
+              Synced to ML Gateway records
+            </p>
+          )}
+          {cloudSaved === 'fail' && (
+            <p style={{ fontSize: 11.5, color: '#B8564F', marginTop: 4 }}>
+              <i className="fas fa-exclamation-triangle" style={{ marginRight: 6 }}></i>
+              Cloud sync pending — please send proof on WhatsApp
+            </p>
+          )}
           <div className="ps-whatsapp-block">
             <div className="psw-title"><i className="fab fa-whatsapp" aria-hidden="true"></i> Step 1 — Send Proof to ML Gateway</div>
             <p>To confirm your payment, please send the confirmation below to our team on WhatsApp <strong>+260 768 526 191</strong>. They will compare your details against our records and confirm receipt.</p>
@@ -2145,7 +2216,7 @@ function FloatingAssistant() {
 }
 
 /* ============================================================
-   NAV — mobile-stable version (no backdrop-blur, no scrolled transition)
+   NAV
    ============================================================ */
 const NAV_LINKS = [
   ['businesses','01','For Businesses'],
@@ -3245,11 +3316,60 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced, onLi
     taxCompliance: '', regulatoryLicences: '', governance: '', shareholderAgreement: '', amlReadiness: '',
     pitchDeck: '', financialModel: '', ddPack: '', managementTeam: '', keyPersonRisk: '',
     description: '',
-    contactName: '', contactEmail: '', contactRole: '', consent: false,
+    contactName: '', contactEmail: '', contactPhone: '', contactRole: '', consent: false,
   });
   const set = (k, v) => setF(prev => ({ ...prev, [k]: v }));
   const assessment = useMemo(() => assessOpportunity(f), [f]);
   const refCode = useMemo(() => 'MLG-' + Math.random().toString(36).slice(2, 7).toUpperCase(), []);
+
+  // Returning applicant detection
+  const [returning, setReturning] = useState(null);
+  const [returningDismissed, setReturningDismissed] = useState(false);
+  const [checkingReturn, setCheckingReturn] = useState(false);
+
+  // On mount: if we have a saved email in localStorage, auto-check
+  useEffect(() => {
+    const savedEmail = (() => {
+      try { return localStorage.getItem('mlg_last_email') || ''; } catch { return ''; }
+    })();
+    if (!savedEmail || returningDismissed) return;
+    let cancelled = false;
+    (async () => {
+      setCheckingReturn(true);
+      const found = await findExistingApplicant({ email: savedEmail });
+      if (!cancelled && found) setReturning(found);
+      setCheckingReturn(false);
+    })();
+    return () => { cancelled = true; };
+  }, [returningDismissed]);
+
+  // When email field is blurred, check Firestore for a match
+  const checkReturningByEmail = async (email) => {
+    if (!email || !email.includes('@') || returningDismissed) return;
+    setCheckingReturn(true);
+    const found = await findExistingApplicant({ email, company: f.company, phone: f.contactPhone });
+    setReturning(found);
+    setCheckingReturn(false);
+  };
+
+  // Apply the found data to the form
+  const applyReturning = () => {
+    if (!returning) return;
+    setF(prev => ({
+      ...prev,
+      company: returning.company || prev.company,
+      country: returning.country || prev.country,
+      sector: returning.sector || prev.sector,
+      stage: returning.stage || prev.stage,
+      contactName: returning.contactName || prev.contactName,
+      contactEmail: returning.email || prev.contactEmail,
+      contactPhone: returning.phone || prev.contactPhone,
+    }));
+    setReturningDismissed(true);
+    setReturning(null);
+  };
+
+  const dismissReturning = () => { setReturningDismissed(true); setReturning(null); };
 
   const step0Ok = f.company && f.country && f.sector && f.legalStructure && f.yearsOperation && f.stage;
   const step1Ok = f.revenue && f.revenueTrajectory && f.ebitdaPosition && f.financialStatements && f.financialHistory;
@@ -3270,46 +3390,102 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced, onLi
 
   const submissionFee = useMemo(() => getSubmissionFee(f.country), [f.country]);
 
-  const handlePaymentConfirmed = () => setStep(5);
+  const handlePaymentConfirmed = async () => {
+    const fb = await firebaseReady;
+    if (fb) {
+      try {
+        const submissionData = sanitizeForFirestore({
+          refCode,
+          company: f.company,
+          country: f.country,
+          sector: f.sector,
+          stage: f.stage,
+          legalStructure: f.legalStructure,
+          yearsOperation: f.yearsOperation,
+          employees: f.employees,
+          revenue: f.revenue,
+          revenueCurrency: f.revenueCurrency,
+          revenueTrajectory: f.revenueTrajectory,
+          ebitdaPosition: f.ebitdaPosition,
+          financialStatements: f.financialStatements,
+          financialHistory: f.financialHistory,
+          amount: f.amount,
+          capitalType: f.capitalType,
+          purposes: f.purposes,
+          useOfFunds: f.useOfFunds,
+          capTable: f.capTable,
+          existingInvestors: f.existingInvestors,
+          timeline: f.timeline,
+          taxCompliance: f.taxCompliance,
+          regulatoryLicences: f.regulatoryLicences,
+          governance: f.governance,
+          shareholderAgreement: f.shareholderAgreement,
+          amlReadiness: f.amlReadiness,
+          pitchDeck: f.pitchDeck,
+          financialModel: f.financialModel,
+          ddPack: f.ddPack,
+          managementTeam: f.managementTeam,
+          keyPersonRisk: f.keyPersonRisk,
+          description: f.description,
+          contactName: f.contactName,
+          contactEmail: f.contactEmail,
+          contactPhone: f.contactPhone,
+          contactRole: f.contactRole,
+          assessmentDecision: assessment.decision,
+          assessmentTier: assessment.tierLabel,
+          assessmentScore: assessment.total,
+          conditions: assessment.conditions,
+          positives: assessment.positives,
+          critical: assessment.critical
+        });
+        await FB.setDoc(
+          FB.doc(fbDb, 'submissions', refCode),
+          { ...submissionData, submittedAt: FB.serverTimestamp() },
+          { merge: true }
+        );
+        console.log('[MLG] ✅ Submission saved to Firestore:', refCode);
 
-  const handleSubmit = async () => {
-  // Persist the full submission to Firestore
-  const fb = await firebaseReady;
-  if (fb) {
-    try {
-      await FB.setDoc(FB.doc(fbDb, 'submissions', refCode), {
-        refCode,
-        company: f.company,
-        country: f.country,
-        sector: f.sector,
-        stage: f.stage,
-        amount: f.amount,
-        capitalType: f.capitalType,
-        purposes: f.purposes,
-        contactName: f.contactName,
-        contactEmail: f.contactEmail,
-        contactRole: f.contactRole,
-        assessmentDecision: assessment.decision,
-        assessmentTier: assessment.tierLabel,
-        assessmentScore: assessment.total,
-        conditions: assessment.conditions,
-        submittedAt: FB.serverTimestamp(),
-      }, { merge: true });
-    } catch (e) {
-      console.warn('[MLG] Could not persist submission:', e);
+        // Write applicant lookup index (email as doc id)
+        if (f.contactEmail && f.contactEmail.includes('@')) {
+          const emailKey = f.contactEmail.toLowerCase().trim();
+          const indexData = sanitizeForFirestore({
+            email: emailKey,
+            company: f.company || '',
+            phone: f.contactPhone || '',
+            contactName: f.contactName || '',
+            refCode: refCode,
+            sector: f.sector || '',
+            country: f.country || '',
+            stage: f.stage || ''
+          });
+          await FB.setDoc(
+            FB.doc(fbDb, 'applicant_index', emailKey),
+            { ...indexData, lastSubmission: FB.serverTimestamp() },
+            { merge: true }
+          );
+          console.log('[MLG] ✅ Applicant index updated:', emailKey);
+          try { localStorage.setItem('mlg_last_email', emailKey); } catch {}
+        }
+      } catch (e) {
+        console.error('[MLG] ❌ Submission write FAILED:', e && e.code, e && e.message, e);
+      }
+    } else {
+      console.warn('[MLG] Firebase not ready — submission not persisted to cloud.');
     }
-  }
+    setStep(5);
+  };
 
-  if (assessment.decision === 'approve' || assessment.decision === 'conditional') {
-    if (!listedRef.current) {
-      listedRef.current = true;
-      if (onListCurated) onListCurated(assessment, f, refCode);
+  const handleSubmit = () => {
+    if (assessment.decision === 'approve' || assessment.decision === 'conditional') {
+      if (!listedRef.current) {
+        listedRef.current = true;
+        if (onListCurated) onListCurated(assessment, f, refCode);
+      }
+      setStep(6);
+    } else {
+      setSubmitted(true);
     }
-    setStep(6);
-  } else {
-    setSubmitted(true);
-  }
-};
+  };
 
   const steps = ['Business identity', 'Financial profile', 'Capital raise', 'Governance & readiness'];
 
@@ -3373,7 +3549,7 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced, onLi
                 currency={submissionFee.currency}
                 purpose="Opportunity Submission & Assessment Fee"
                 purposeDetail={submissionFee.currency === 'ZMW' ? 'Non-refundable. Covers automated platform assessment for Zambian-registered businesses.' : 'Non-refundable. Covers automated platform assessment.'}
-                applicant={{ firstName: f.contactName.split(' ')[0] || f.contactName, lastName: f.contactName.split(' ').slice(1).join(' '), email: f.contactEmail, phone: '', country: f.country, company: f.company }}
+                applicant={{ firstName: f.contactName.split(' ')[0] || f.contactName, lastName: f.contactName.split(' ').slice(1).join(' '), email: f.contactEmail, phone: f.contactPhone, country: f.country, company: f.company }}
                 receiptPrefix="MLG-SUB"
                 onConfirmed={handlePaymentConfirmed}
               />
@@ -3394,12 +3570,55 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced, onLi
             <p className="text-[16px] leading-relaxed text-[#071224]/55 max-w-2xl mb-8">
               Complete the structured assessment form. Proceed to payment of the non-refundable Submission &amp; Assessment Fee to activate the platform screening and receive your decision.
             </p>
-            <div className="flex flex-wrap items-center gap-3 mb-10 p-4 bg-white rounded-sm border border-[#071224]/8">
+            <div className="flex flex-wrap items-center gap-3 mb-6 p-4 bg-white rounded-sm border border-[#071224]/8">
               <span className="w-2 h-2 rounded-full pulse-soft" style={{ background: liveSignal.color }}></span>
               <span className="text-[11px] tracking-[0.14em] uppercase font-semibold text-[#071224]/50">Live signal</span>
               <span className="text-[12.5px] font-medium" style={{ color: liveSignal.color }}>{liveSignal.label}</span>
               <span className="ml-auto text-[11.5px] text-[#071224]/40 tabular-nums">{Math.round(completion * 100)}% complete</span>
             </div>
+
+            {checkingReturn && (
+              <div className="mb-6 p-4 bg-[#E7F4FF] border border-[#009CDE]/30 rounded-sm flex items-center gap-3 fadein">
+                <i className="fas fa-spinner fa-spin" style={{ color: '#009CDE', fontSize: 14 }} aria-hidden="true"></i>
+                <span className="text-[12.5px] text-[#0A4D6E]">Checking for a previous submission…</span>
+              </div>
+            )}
+
+            {returning && !returningDismissed && (
+              <div className="mb-6 p-5 lg:p-6 bg-gradient-to-br from-[#F5B722]/10 to-[#F5B722]/5 border-2 border-[#F5B722]/40 rounded-sm fadein">
+                <div className="flex items-start gap-4">
+                  <span className="w-10 h-10 shrink-0 rounded-full bg-[#F5B722] flex items-center justify-center">
+                    <i className="fas fa-user-check" style={{ color: '#071224', fontSize: 16 }} aria-hidden="true"></i>
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[14px] font-semibold text-[#071224] mb-1">
+                      Welcome back{returning.contactName ? ', ' + returning.contactName.split(' ')[0] : ''} — we found your previous submission
+                    </p>
+                    <p className="text-[12.5px] leading-relaxed text-[#071224]/65 mb-4">
+                      Matched by <strong>{returning.matchedBy}</strong>. Reference <strong className="font-mono">{returning.refCode}</strong>
+                      {returning.company ? ' · ' + returning.company : ''}
+                      {returning.country ? ' · ' + returning.country : ''}
+                    </p>
+                    <div className="flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={applyReturning}
+                        className="inline-flex items-center gap-2 bg-[#071224] text-white px-4 py-2.5 rounded-sm text-[12.5px] font-semibold hover:bg-[#0F203A] transition-all">
+                        <i className="fas fa-magic" style={{ fontSize: 12 }} aria-hidden="true"></i>
+                        Prefill my details
+                      </button>
+                      <button
+                        type="button"
+                        onClick={dismissReturning}
+                        className="inline-flex items-center gap-2 text-[#071224]/55 hover:text-[#071224] px-4 py-2.5 rounded-sm text-[12.5px] font-medium transition-colors">
+                        Start fresh
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="flex flex-wrap gap-x-6 gap-y-3 mb-10 pb-6 border-b border-[#071224]/10">
               {steps.map((s, i) => (
                 <button key={s} onClick={() => i < step && setStep(i)}
@@ -3490,7 +3709,12 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced, onLi
                       <Field label="Your name" required><TextInput value={f.contactName} onChange={v => set('contactName', v)} placeholder="Full name" /></Field>
                       <Field label="Role" hint="Optional"><TextInput value={f.contactRole} onChange={v => set('contactRole', v)} placeholder="e.g. Founder & CEO" /></Field>
                     </div>
-                    <Field label="Email address" required><TextInput type="email" value={f.contactEmail} onChange={v => set('contactEmail', v)} placeholder="you@company.com" /></Field>
+                    <div className="grid sm:grid-cols-2 gap-7">
+                      <Field label="Email address" required><TextInput type="email" value={f.contactEmail} onChange={v => set('contactEmail', v)} onBlur={() => checkReturningByEmail(f.contactEmail)} placeholder="you@company.com" /></Field>
+                      <Field label="Phone / WhatsApp" hint="Optional — helps us match you if you return">
+                        <TextInput value={f.contactPhone} onChange={v => set('contactPhone', v)} placeholder="e.g. +260 768 526 191" />
+                      </Field>
+                    </div>
                   </div>
                 </>
               )}
@@ -3577,6 +3801,37 @@ function InvestorAccess({ go }) {
   const step2Ok = f.investTypes.length > 0;
   const step3Ok = f.contactName && f.contactEmail && f.consent;
   useEffect(() => { window.scrollTo(0, 0); }, [step, submitted]);
+
+  const handleSubmit = async () => {
+    const fb = await firebaseReady;
+    if (fb) {
+      try {
+        const clean = sanitizeForFirestore({
+          entity: f.entity,
+          entityType: f.entityType,
+          geographies: f.geos,
+          sectors: f.sectors,
+          stages: f.stages,
+          ticketMin: f.ticketMin,
+          ticketMax: f.ticketMax,
+          currency: f.currency,
+          investTypes: f.investTypes,
+          ownership: f.ownership,
+          returnExp: f.returnExp,
+          horizon: f.horizon,
+          restrictions: f.restrictions,
+          contactName: f.contactName,
+          contactEmail: f.contactEmail
+        });
+        const id = 'INV-' + Date.now();
+        await FB.setDoc(FB.doc(fbDb, 'investor_mandates', id), { ...clean, createdAt: FB.serverTimestamp() }, { merge: true });
+        console.log('[MLG] ✅ Investor mandate saved:', id, clean);
+      } catch (e) {
+        console.error('[MLG] ❌ Investor mandate write FAILED:', e && e.code, e && e.message, e);
+      }
+    }
+    setSubmitted(true);
+  };
 
   if (submitted) {
     return (
@@ -3705,7 +3960,7 @@ function InvestorAccess({ go }) {
               {step < 2 ? (
                 <Btn size="lg" onClick={() => setStep(step + 1)} disabled={step === 0 ? !step1Ok : !step2Ok}>Continue <Arrow /></Btn>
               ) : (
-                <Btn size="lg" onClick={() => setSubmitted(true)} disabled={!step3Ok}>Register mandate <Arrow /></Btn>
+                <Btn size="lg" onClick={handleSubmit} disabled={!step3Ok}>Register mandate <Arrow /></Btn>
               )}
             </div>
           </div>
@@ -3732,6 +3987,30 @@ function Network({ go }) {
   const [f, setF] = useState({ entity: '', type: '', geos: [], sectors: [], ticket: '', note: '', name: '', email: '', consent: false });
   const set = (k, v) => setF(p => ({ ...p, [k]: v }));
   const ok = f.entity && f.type && f.geos.length && f.sectors.length && f.name && f.email && f.consent;
+
+  const handleSubmit = async () => {
+    const fb = await firebaseReady;
+    if (fb) {
+      try {
+        const clean = sanitizeForFirestore({
+          entity: f.entity,
+          providerType: f.type,
+          geographies: f.geos,
+          sectors: f.sectors,
+          ticket: f.ticket,
+          note: f.note,
+          contactName: f.name,
+          contactEmail: f.email
+        });
+        const id = 'NET-' + Date.now();
+        await FB.setDoc(FB.doc(fbDb, 'network_applications', id), { ...clean, createdAt: FB.serverTimestamp() }, { merge: true });
+        console.log('[MLG] ✅ Network application saved:', id, clean);
+      } catch (e) {
+        console.error('[MLG] ❌ Network application write FAILED:', e && e.code, e && e.message, e);
+      }
+    }
+    setSubmitted(true);
+  };
 
   if (submitted) {
     return (
@@ -3781,7 +4060,7 @@ function Network({ go }) {
                 </span>
                 <span className="text-[13px] leading-relaxed text-[#071224]/65">I confirm I am an investor or authorised representative and consent to ML Gateway holding these details for network matching.</span>
               </button>
-              <Btn size="lg" onClick={() => setSubmitted(true)} disabled={!ok}>Apply to join <Arrow /></Btn>
+              <Btn size="lg" onClick={handleSubmit} disabled={!ok}>Apply to join <Arrow /></Btn>
             </div>
           </div>
           <aside className="space-y-6 lg:pt-12">
@@ -3955,7 +4234,7 @@ function HowItWorks({ go, openPurchase }) {
 }
 
 /* ============================================================
-   OPPORTUNITIES — with locked/unlocked investor access
+   OPPORTUNITIES
    ============================================================ */
 function OpportunityCard({ opp, unlocked, onUnlock }) {
   const statusCls = statusBadgeClass(opp.status);
@@ -4298,8 +4577,11 @@ function App() {
     (async () => {
       const fb = await firebaseReady;
       if (fb) {
-        try { await FB.setDoc(FB.doc(fbDb, 'curated_opportunities', opp.id), { ...opp, createdAt: FB.serverTimestamp() }, { merge: true }); }
-        catch(e) { console.warn('[MLG] Could not persist curated opportunity:', e); }
+        try {
+          const clean = sanitizeForFirestore(opp);
+          await FB.setDoc(FB.doc(fbDb, 'curated_opportunities', opp.id), { ...clean, createdAt: FB.serverTimestamp() }, { merge: true });
+          console.log('[MLG] ✅ Curated opportunity saved:', opp.id);
+        } catch(e) { console.error('[MLG] ❌ Curated opportunity write FAILED:', e && e.code, e && e.message, e); }
       }
     })();
   }, [persistCurated]);
