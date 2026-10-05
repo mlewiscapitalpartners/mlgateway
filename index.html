@@ -2639,6 +2639,96 @@ function TermsPanel({ quote }) {
 }
 
 /* ============================================================
+   HERO SLIDER
+   ============================================================ */
+const HERO_SLIDES = [
+  { src: '3dbdfcd5-d5fe-4746-999a-7bede5e66420.png', eyebrow: 'Curated access',      title: 'Capital, matched to fit' },
+  { src: '806d4724-c404-4fec-9c4e-b4bca9d154bf.png', eyebrow: 'Verified investors',  title: 'Opportunity, released with intent' },
+  { src: 'f4fc3999-bafb-45f4-b14b-8fdef5e7269b.png', eyebrow: 'Structured pathway',  title: 'From assessment to engagement' },
+  { src: 'c0dbb335-1209-4c5c-a060-8a204d846347.png', eyebrow: 'African markets',     title: 'Global capital, regional focus' },
+];
+
+function HeroSlider() {
+  const [idx, setIdx] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const n = HERO_SLIDES.length;
+  const slide = (d) => setIdx(p => (p + d + n) % n);
+
+  useEffect(() => {
+    if (paused) return;
+    const t = setInterval(() => setIdx(p => (p + 1) % n), 5200);
+    return () => clearInterval(t);
+  }, [paused, n]);
+
+  return (
+    <div
+      className="relative w-full overflow-hidden rounded-sm border border-white/10 bg-[#0F203A] mb-16 group fadein"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div className="relative h-[240px] sm:h-[340px] lg:h-[460px]">
+        {HERO_SLIDES.map((s, i) => (
+          <div
+            key={i}
+            className={`absolute inset-0 transition-opacity duration-[1100ms] ease-out ${i === idx ? 'opacity-100' : 'opacity-0'}`}
+            aria-hidden={i !== idx}
+          >
+            <img
+              src={s.src}
+              alt={s.title}
+              loading={i === 0 ? 'eager' : 'lazy'}
+              className={`w-full h-full object-cover transition-transform duration-[7000ms] ease-out ${i === idx ? 'scale-[1.06]' : 'scale-100'}`}
+            />
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#071224] via-[#071224]/35 to-transparent"></div>
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-r from-[#071224]/75 via-[#071224]/10 to-transparent"></div>
+          </div>
+        ))}
+
+        {/* Caption (remounts per slide so the fade replays) */}
+        <div key={idx} className="absolute left-6 lg:left-10 bottom-8 lg:bottom-10 max-w-md pr-16 fadein-s">
+          <Micro light className="block mb-2">{HERO_SLIDES[idx].eyebrow}</Micro>
+          <p className="serif text-[22px] lg:text-[28px] leading-tight text-white">{HERO_SLIDES[idx].title}</p>
+        </div>
+
+        {/* Prev / Next */}
+        <button
+          type="button"
+          onClick={() => slide(-1)}
+          aria-label="Previous slide"
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#071224]/55 backdrop-blur-sm border border-white/15 text-white flex items-center justify-center transition-all duration-300 hover:bg-[#F5B722] hover:text-[#071224] hover:border-[#F5B722] opacity-70 lg:opacity-0 lg:group-hover:opacity-100"
+        >
+          <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+            <path d="M5 1L1 5L5 9M1 5H13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={() => slide(1)}
+          aria-label="Next slide"
+          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#071224]/55 backdrop-blur-sm border border-white/15 text-white flex items-center justify-center transition-all duration-300 hover:bg-[#F5B722] hover:text-[#071224] hover:border-[#F5B722] opacity-70 lg:opacity-0 lg:group-hover:opacity-100"
+        >
+          <svg width="14" height="10" viewBox="0 0 14 10" fill="none">
+            <path d="M9 1L13 5L9 9M13 5H1" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </button>
+
+        {/* Dots */}
+        <div className="absolute right-6 lg:right-10 bottom-8 lg:bottom-10 flex items-center gap-2">
+          {HERO_SLIDES.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setIdx(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              className={`h-[3px] rounded-full transition-all duration-300 ${i === idx ? 'w-9 bg-[#F5B722]' : 'w-4 bg-white/30 hover:bg-white/60'}`}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+   }
+  /* ============================================================
    HOME
    ============================================================ */
 function Home({ go, openPurchase }) {
@@ -2669,12 +2759,15 @@ function Home({ go, openPurchase }) {
                 A gateway connecting global capital and businesses with opportunities across African markets. A curated pathway between growth opportunities and private capital — for African businesses seeking capital or international investors, and for international businesses entering, expanding or investing in African markets.
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:items-end shrink-0">
-              <Btn size="lg" onClick={() => go('fit')}>Find your capital pathway <Arrow /></Btn>
-              <Btn size="lg" variant="ghostLight" onClick={() => go('how')}>How it works</Btn>
-            </div>
-          </div>
-          <div className="border-t border-white/10">
+                    <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:items-end shrink-0">
+          <Btn size="lg" onClick={() => go('fit')}>Find your capital pathway <Arrow /></Btn>
+          <Btn size="lg" variant="ghostLight" onClick={() => go('how')}>How it works</Btn>
+        </div>
+      </div>
+
+      <HeroSlider />
+
+      <div className="border-t border-white/10">
             <div className="py-5 flex items-center gap-4">
               <Micro light>What brings you here?</Micro>
               <span className="flex-1 h-px bg-white/10" />
