@@ -216,10 +216,8 @@ const { useState, useMemo, useEffect, useCallback, useRef } = React;
    ============================================================ */
 const ADMIN_WHATSAPP = '260768526191';
 const VERIFY_BASE_URL = "https://mlgateway.com/verify";
-  /* ── WhatsApp deep-link helpers ────────────────────────────────
-   On mobile, `wa.me` serves an interstitial "Open app" page.
-   The `whatsapp://` scheme bypasses it and launches the app
-   directly with the message pre-filled.                          */
+
+/* ── WhatsApp deep-link helpers ──────────────────────────────── */
 function isMobileDevice() {
   if (typeof navigator === 'undefined') return false;
   const ua = (navigator.userAgent || navigator.vendor || '').toLowerCase();
@@ -230,17 +228,11 @@ function buildWhatsappUrl(message, phone) {
   const p = phone || ADMIN_WHATSAPP;
   const encoded = encodeURIComponent(message);
   if (isMobileDevice()) {
-    // Native app scheme — opens WhatsApp directly on the phone
     return 'whatsapp://send?phone=' + p + '&text=' + encoded;
   }
-  // Desktop — opens WhatsApp Web / Desktop
   return 'https://wa.me/' + p + '?text=' + encoded;
 }
 
-/* Launch WhatsApp. On mobile, uses a programmatic anchor click
-   on a `whatsapp://` link (the only reliable way to fire a custom
-   URL scheme from JavaScript). On desktop, returns a placeholder
-   window that the caller navigates once the URL is ready. */
 function launchWhatsapp(message, phone) {
   const url = buildWhatsappUrl(message, phone);
   if (isMobileDevice()) {
@@ -430,6 +422,90 @@ const INVESTOR_ACCESS_FEE = {
   purpose: 'Investor Access Fee',
   purposeDetail: 'One-time platform access. Unlocks full detail on every curated opportunity in the ML Gateway private-capital network.'
 };
+
+/* ============================================================
+   ENGAGEMENT TIERS & SUCCESS FEE SCHEDULE
+   ============================================================ */
+const ENGAGEMENT_TIERS = [
+  {
+    key: 'select',
+    label: 'Gateway Select',
+    tagline: 'Access & investor positioning',
+    description: 'For businesses that need access and investor positioning.',
+    includes: [
+      'Investment-readiness assessment',
+      'Capital requirement assessment',
+      'Investor mapping',
+      'Investor positioning',
+      'Selected investor introductions'
+    ],
+    commercial: 'Fixed Assessment Fee',
+    commercialDetail: 'A fixed fee payable for admission to the ML Gateway capital mobilisation process and development of your investor engagement pathway.'
+  },
+  {
+    key: 'mobilise',
+    label: 'Gateway Mobilise',
+    tagline: 'Active capital raise',
+    description: 'For businesses actively raising capital.',
+    includes: [
+      'Everything in Gateway Select',
+      'Investor targeting',
+      'Curated introductions',
+      'Investor engagement coordination',
+      'Follow-up management',
+      'Capital-raising pathway',
+      'Transaction coordination'
+    ],
+    commercial: 'Engagement Fee + Success Fee',
+    commercialDetail: 'A fixed Engagement Fee payable on commencement, plus a Success Fee payable only on successful capital mobilisation.'
+  },
+  {
+    key: 'transaction',
+    label: 'Gateway Transaction',
+    tagline: 'Live transaction support',
+    description: 'For businesses with a defined transaction and active investor interest.',
+    includes: [
+      'Investor engagement',
+      'Due diligence coordination',
+      'Information exchange',
+      'Management / investor meeting coordination',
+      'Negotiation support coordination',
+      'Transaction process management'
+    ],
+    commercial: 'Transaction / Milestone Fee',
+    commercialDetail: 'A transaction or milestone fee payable as the transaction progresses.'
+  }
+];
+
+const SUCCESS_FEE_TIERS = [
+  { range: 'Up to $2 million', rate: '3.0%' },
+  { range: '$2.5 million – $5 million', rate: '2.5%' },
+  { range: '$7 million and above', rate: '1.7%' }
+];
+
+function successFeeRateForAmount(amountStr) {
+  const map = {
+    'Under $1m': '3.0%',
+    '$1m – $5m': '2.5%',
+    '$5m – $10m': '1.7%',
+    '$10m – $25m': '1.7%',
+    '$25m – $50m': '1.7%',
+    '$50m+': '1.7%'
+  };
+  return map[amountStr] || '3.0%';
+}
+
+function successFeeRangeLabel(amountStr) {
+  const map = {
+    'Under $1m': 'Up to $2 million',
+    '$1m – $5m': '$2.5m – $5m',
+    '$5m – $10m': '$7 million and above',
+    '$10m – $25m': '$7 million and above',
+    '$25m – $50m': '$7 million and above',
+    '$50m+': '$7 million and above'
+  };
+  return map[amountStr] || 'Up to $2 million';
+}
 
 const SEED_CURATED_OPPORTUNITIES = [
   { id: 'OPP-2026-001', sector: 'Financial services', country: 'Kenya', stage: 'Profitable & scaling', amount: '$5m – $10m', capitalType: 'Growth capital', purposes: ['Expansion capital'], tierLabel: 'Investment-Ready', status: 'Investment-Ready', score: 84, label: 'Expansion capital for a regional lender', listedAt: '2026-09-14' },
@@ -1075,7 +1151,7 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
     return lines.join('\n');
   };
 
-    const handleConfirm = async () => {
+  const handleConfirm = async () => {
     setErrorMsg('');
     if (!method) { setErrorMsg('Please select a payment method first.'); return; }
     if (!senderName.trim()) { setErrorMsg('Please enter the name on the payment.'); return; }
@@ -1083,8 +1159,6 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
     if (!userRef.trim()) { setErrorMsg('Please enter your transaction reference.'); return; }
     if (!agree) { setErrorMsg('Please tick the confirmation checkbox.'); return; }
 
-    // ── Open a placeholder tab SYNCHRONOUSLY while the user gesture is
-    //    still active. Used only on desktop — on mobile we deep-link.
     let waWindow = null;
     if (!isMobileDevice()) {
       try {
@@ -1106,8 +1180,6 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
 
     const msg = buildWhatsappMessage(rcpt, dt);
 
-    // ── Mobile: deep-link directly into the WhatsApp app.
-    //    Desktop: navigate the placeholder tab to WhatsApp Web.
     if (isMobileDevice()) {
       const result = launchWhatsapp(msg);
       setWhatsappUrl(result.url);
@@ -1176,6 +1248,7 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
 
     if (onConfirmed) onConfirmed(cleanData);
   };
+
   const copyWhatsappMessage = () => {
     const text = buildWhatsappMessage(receiptNo, receiptDate);
     const done = () => { setCopiedMessage(true); setTimeout(() => setCopiedMessage(false), 2500); };
@@ -1600,10 +1673,18 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                         <span className="text-[10px] tracking-[0.12em] uppercase text-[#B8860B] font-semibold">Success Fee</span>
                         <span className="text-[10px] text-[#071224]/40">Upon mobilisation</span>
                       </div>
-                      <p className="serif text-[36px] text-[#071224] leading-none mb-3">3%</p>
-                      <p className="text-[11.5px] leading-relaxed text-[#071224]/55">
-                        Indicative — payable only upon successful capital mobilisation resulting from the engagement. Final percentage confirmed in the Engagement Letter.
+                      <p className="serif text-[36px] text-[#071224] leading-none mb-3">{successFeeRateForAmount(formData.amount)}</p>
+                      <p className="text-[11.5px] leading-relaxed text-[#071224]/55 mb-4">
+                        Applicable rate for your capital band ({successFeeRangeLabel(formData.amount)}). Payable only on successful capital mobilisation. Graduated schedule:
                       </p>
+                      <div className="space-y-1.5">
+                        {SUCCESS_FEE_TIERS.map((t, i) => (
+                          <div key={i} className="flex justify-between gap-4">
+                            <span className="text-[11px] text-[#071224]/50">{t.range}</span>
+                            <span className="text-[11.5px] text-[#071224] font-semibold">{t.rate}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1756,7 +1837,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                     { n: '1', t: 'Engagement', b: 'ML Gateway is engaged to provide the business with access to relevant private capital and a structured pathway to the right investors, through the curated ML Gateway private-capital network.' },
                     { n: '2', t: 'Scope', b: 'The scope comprises opportunity positioning, mandate matching, curated introductions, engagement coordination and process support, as set out in the Engagement Proposal dated ' + today + '.' },
                     { n: '3', t: 'Engagement Fee', b: 'A fixed Engagement Fee of ' + formatUSD(quote.fee) + ' is payable upon commencement of this engagement. The Engagement Fee is payable upon commencement and is not contingent upon successful capital mobilisation.' },
-                    { n: '4', t: 'Success Fee', b: 'A Success Fee, indicative at 3% of capital successfully mobilised, is payable upon successful capital mobilisation resulting from this engagement. The final Success Fee percentage and basis of calculation are confirmed in the Engagement Proposal and are agreed in writing before any introduction is made.' },
+                    { n: '4', t: 'Success Fee', b: 'A Success Fee is payable upon successful capital mobilisation resulting from this engagement. The Success Fee is graduated by capital raised: 3.0% up to $2 million, 2.5% between $2.5 million and $5 million, and 1.7% on $7 million and above. For your capital band (' + successFeeRangeLabel(formData.amount) + '), the applicable rate is ' + successFeeRateForAmount(formData.amount) + '. The final Success Fee percentage and basis of calculation are confirmed in the Engagement Proposal and are agreed in writing before any introduction is made.' },
                     { n: '5', t: 'Obligations of the business', b: 'The business will provide accurate and complete information, respond to reasonable requests in a timely manner, and notify ML Gateway of any material change to the opportunity, its financial position or its shareholder base.' },
                     { n: '6', t: 'Conditions', b: assessment.conditions.length > 0 ? 'The following conditions are carried into this engagement and must be evidenced before introductions commence: ' + assessment.conditions.map((c, i) => `(${i + 1}) ${c}`).join(' ') : 'No outstanding conditions were identified at assessment. ML Gateway may identify further diligence items during the engagement.' },
                     { n: '7', t: 'Confidentiality', b: 'ML Gateway will not disclose your opportunity to any investor without your agreement. Your information is held privately and used only for the purpose of mandate matching and engagement coordination.' },
@@ -1901,10 +1982,14 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                     <span className="serif text-[28px] text-[#F5B722] leading-none">{payableStr}</span>
                   </div>
                 </div>
-                <div className="mt-6 pt-5 border-t border-white/10">
+                <div className="mt-6 pt-5 border-t border-white/10 space-y-2">
                   <div className="flex justify-between gap-6">
                     <span className="text-[12px] text-white/45">Success Fee (indicative, on mobilisation)</span>
-                    <span className="text-[12px] text-white/70 font-medium">3% of capital raised</span>
+                    <span className="text-[12px] text-[#F5B722] font-semibold">{successFeeRateForAmount(formData.amount)} of capital raised</span>
+                  </div>
+                  <div className="flex justify-between gap-6">
+                    <span className="text-[12px] text-white/35">Applicable band</span>
+                    <span className="text-[12px] text-white/55">{successFeeRangeLabel(formData.amount)}</span>
                   </div>
                 </div>
               </div>
@@ -2022,7 +2107,7 @@ function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) 
                     ['Payment reference', payData.transactionRef],
                     ['Signed by', signName + (signRole ? ' · ' + signRole : '')],
                     ['Date of commencement', today],
-                    ['Success Fee (on mobilisation)', '3% of capital raised — confirmed in letter'],
+                    ['Success Fee (on mobilisation)', successFeeRateForAmount(formData.amount) + ' of capital raised — confirmed in letter'],
                   ].map(([k, v], i) => (
                     <div key={k} className={`px-1 py-3.5 flex justify-between gap-6 ${i > 0 ? 'border-t border-[#071224]/6' : ''}`}>
                       <span className="text-[12.5px] text-[#071224]/45 shrink-0 font-medium">{k}</span>
@@ -2428,7 +2513,7 @@ function Footer({ go }) {
             </div>
             <p className="text-[11px] tracking-[0.16em] uppercase text-[#F5B722] font-medium mb-5">Private Capital Access</p>
             <p className="text-[13.5px] leading-relaxed text-white/50 max-w-xs">
-              A private-capital mobilisation platform connecting investment- and growth-ready businesses with relevant investors for opportunities across African markets.
+              A curated pathway between growth opportunities and private capital across African markets. A gateway connecting global capital and businesses with opportunities across African markets.
             </p>
           </div>
           <div>
@@ -2533,7 +2618,16 @@ function TermsPanel({ quote }) {
             <p className="text-[14.5px] font-semibold text-white">Success Fee</p>
             <span className="text-[10px] tracking-[0.14em] uppercase text-[#F5B722] font-semibold whitespace-nowrap">Upon mobilisation</span>
           </div>
-          <p className="text-[12.5px] leading-relaxed text-white/50">A fee payable upon successful capital mobilisation resulting from the private capital platform engagement. Indicative at 3% of capital raised.</p>
+          <p className="text-[12.5px] leading-relaxed text-white/50 mb-4">A fee payable only upon successful capital mobilisation resulting from the engagement. Graduated by capital raised:</p>
+          <div className="space-y-2 mb-4">
+            {SUCCESS_FEE_TIERS.map((t, i) => (
+              <div key={i} className="flex justify-between gap-4 py-2 border-b border-white/10 last:border-0">
+                <span className="text-[12px] text-white/55">{t.range}</span>
+                <span className="serif text-[15px] text-[#F5B722] font-semibold">{t.rate}</span>
+              </div>
+            ))}
+          </div>
+          <p className="text-[11.5px] leading-relaxed text-white/40">Final Success Fee percentage confirmed in your Engagement Letter before any introduction is made.</p>
         </div>
       </div>
 
@@ -2549,16 +2643,16 @@ function TermsPanel({ quote }) {
    ============================================================ */
 function Home({ go, openPurchase }) {
   const orientation = [
-    { n: '01', t: "I'm a business seeking capital", d: "Tell us about your business, the opportunity and the capital you are seeking. We'll assess it against our investor network and mandate.", cta: 'Explore Capital Access', r: 'businesses', icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
-    { n: '02', t: "I'm an investor seeking opportunities", d: "Tell us your mandate — sectors, geographies, ticket size and stage. We'll surface opportunities aligned to your criteria.", cta: 'Explore Investment Opportunities', r: 'investors', icon: 'M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6' },
-    { n: '03', t: 'I represent a capital provider', d: 'Join our private-capital network and receive opportunities aligned with your mandate.', cta: 'Join the Capital Network', r: 'network', icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75' },
-    { n: '04', t: 'I want to understand how this works', d: 'Understand the process, the requirements and what happens at each stage before you commit anything.', cta: 'Understand the Process', r: 'how', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
+    { n: '01', t: "I'm an African business seeking capital", d: "Seeking growth, expansion or scale capital — or international investors for an African opportunity. We'll assess your readiness and position you with aligned capital.", cta: 'Explore Capital Access', r: 'businesses', icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
+    { n: '02', t: "I'm an international business pursuing African markets", d: "Entering, expanding or investing in African markets — and seeking capital or relevant connections. We help you navigate from capital requirement to investor engagement.", cta: 'Explore Africa Opportunities', r: 'businesses', icon: 'M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20M12 2a10 10 0 100 20 10 10 0 000-20z' },
+    { n: '03', t: "I'm an investor or capital provider", d: "Family office, VC, PE, impact fund, DFI, corporate or private investor — define your mandate and receive curated access to screened, investment-ready opportunities.", cta: 'Explore Investment Opportunities', r: 'investors', icon: 'M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6' },
+    { n: '04', t: 'I want to understand how this works', d: 'See the process, the three Gateway engagement tiers, and what happens at each stage before you commit anything.', cta: 'Understand the Process', r: 'how', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
   ];
   const steps = [
-    { n: '01', t: 'Submit', d: 'Tell us about your business or your investment mandate. Structured, not a blank email.' },
+    { n: '01', t: 'Select', d: 'You complete a structured assessment. Selected, investment- and growth-ready businesses are admitted to the platform.' },
     { n: '02', t: 'Screen', d: 'Our system assesses the opportunity against five weighted dimensions and returns an immediate decision.' },
-    { n: '03', t: 'Engage', d: 'Approve or conditional decisions trigger an auto-generated Engagement Proposal, Letter and Fee.' },
-    { n: '04', t: 'Mobilise', d: 'On commencement, matching begins and capital progresses toward investment.' },
+    { n: '03', t: 'Engage', d: 'Approve or conditional decisions trigger an auto-generated Engagement Proposal, Engagement Letter and Fee quote.' },
+    { n: '04', t: 'Mobilise', d: 'On commencement, investor targeting, curated introductions and capital mobilisation begin.' },
   ];
   return (
     <div className="fadein bg-[#F0F4F8]">
@@ -2572,7 +2666,7 @@ function Home({ go, openPurchase }) {
                 Private capital,<br />matched to <span className="italic text-[#F5B722]">opportunity</span>.
               </h1>
               <p className="mt-8 text-[16px] lg:text-[18px] leading-relaxed text-white/55 max-w-2xl">
-                A private-capital mobilisation platform connecting investment- and growth-ready businesses with relevant investors for opportunities across African markets.
+                A gateway connecting global capital and businesses with opportunities across African markets. A curated pathway between growth opportunities and private capital — for African businesses seeking capital or international investors, and for international businesses entering, expanding or investing in African markets.
               </p>
             </div>
             <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:items-end shrink-0">
@@ -2622,6 +2716,84 @@ function Home({ go, openPurchase }) {
         </div>
       </section>
 
+      {/* ============================================================
+          WHO WE SERVE — four client / opportunity categories
+          ============================================================ */}
+      <section className="bg-white">
+        <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
+          <SectionHead
+            eyebrow="Who we serve"
+            title="African markets as the anchor. Global capital and businesses as the participants."
+            sub="ML Gateway is a gateway connecting global capital and businesses with opportunities across African markets. Four categories of client and opportunity move through the platform."
+            className="mb-14 max-w-3xl"
+          />
+          <div className="grid md:grid-cols-2 gap-6">
+            {[
+              { n: '01', t: 'African businesses seeking capital for growth', d: 'Businesses headquartered in African markets raising growth, expansion or scale capital from a curated investor network.' },
+              { n: '02', t: 'African businesses seeking international investors', d: 'Businesses with African operations looking to raise capital from international investors and global capital providers.' },
+              { n: '03', t: 'International businesses entering or expanding in Africa', d: 'Companies from other continents pursuing market entry, expansion or strategic opportunities across African markets.' },
+              { n: '04', t: 'International businesses seeking capital for African opportunities', d: 'Businesses and companies outside Africa raising capital to deploy into African opportunities, projects or acquisitions.' },
+            ].map((c, i) => (
+              <div key={i} className="bg-[#F0F4F8] p-7 lg:p-9 rounded-sm border border-[#071224]/5 hover:shadow-lg transition-all duration-300">
+                <span className="serif text-[16px] text-[#F5B722] font-bold block mb-5">{c.n}</span>
+                <h3 className="serif text-[22px] lg:text-[24px] leading-tight text-[#071224] mb-3">{c.t}</h3>
+                <p className="text-[13.5px] leading-relaxed text-[#071224]/55">{c.d}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-12 bg-[#071224] rounded-sm p-8 lg:p-12">
+            <Micro light className="block mb-6">The investor universe</Micro>
+            <p className="text-[15px] leading-relaxed text-white/60 max-w-3xl mb-8">
+              The investor universe is likewise global. ML Gateway connects businesses and opportunities with the private-capital providers best aligned to each specific mandate.
+            </p>
+            <div className="flex flex-wrap gap-2.5">
+              {['African investors','International investors','Family offices','Venture capital','Private equity','Impact investors','Strategic / corporate investors','Other private-capital providers'].map((x, i) => (
+                <span key={i} className="text-[12.5px] text-white/80 border border-white/15 rounded-full px-4 py-2 hover:border-[#F5B722] hover:text-[#F5B722] transition-colors">{x}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================
+          ENGAGEMENT TIERS — Select / Mobilise / Transaction
+          ============================================================ */}
+      <section className="bg-[#071224] text-white">
+        <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
+          <SectionHead
+            light
+            eyebrow="Three engagement tiers"
+            title="Three tiers. Built around where you are in the capital-raising process."
+            sub="ML Gateway engages with a limited number of investment- and growth-ready businesses. Each business is admitted at one of three tiers, according to its stage and the work required."
+            className="mb-16 max-w-3xl"
+          />
+          <div className="grid lg:grid-cols-3 gap-6">
+            {ENGAGEMENT_TIERS.map((tier, i) => (
+              <div key={tier.key} className={`p-7 lg:p-9 rounded-sm border flex flex-col ${i === 1 ? 'bg-gradient-to-br from-[#0F203A] to-[#071224] border-[#F5B722]/50 shadow-[0_0_40px_rgba(245,183,34,0.12)]' : 'bg-white/[0.03] border-white/12'}`}>
+                <Micro light className="block mb-5">Tier {String(i + 1).padStart(2, '0')}</Micro>
+                <h3 className="serif text-[26px] lg:text-[30px] leading-tight text-white mb-2">{tier.label}</h3>
+                <p className="text-[11px] tracking-[0.14em] uppercase font-semibold mb-5" style={{ color: '#F5B722' }}>{tier.tagline}</p>
+                <p className="text-[13.5px] leading-relaxed text-white/55 mb-6">{tier.description}</p>
+                <div className="space-y-2.5 pt-5 border-t border-white/10 mb-7 flex-1">
+                  {tier.includes.map((inc, j) => (
+                    <div key={j} className="flex items-start gap-2.5 text-[12.5px] leading-relaxed text-white/70">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F5B722" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0"><path d="M20 6L9 17l-5-5"/></svg>
+                      {inc}
+                    </div>
+                  ))}
+                </div>
+                <div className="pt-5 border-t border-white/10">
+                  <p className="text-[10.5px] tracking-[0.14em] uppercase font-semibold text-[#F5B722] mb-2">Commercial</p>
+                  <p className="text-[13px] font-semibold text-white mb-2">{tier.commercial}</p>
+                  <p className="text-[11.5px] leading-relaxed text-white/45">{tier.commercialDetail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="bg-[#F0F4F8]">
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
@@ -2635,7 +2807,7 @@ function Home({ go, openPurchase }) {
                 ['Submission & Assessment Fee', 'Payable on submission. Non-refundable.'],
                 ['Investor Access Fee', 'One-time. Unlocks the curated opportunity environment.'],
                 ['Engagement Fee', 'Payable on commencement. Quoted in your Engagement Proposal.'],
-                ['Success Fee', 'Payable only on successful capital mobilisation.'],
+                ['Success Fee', '3.0% up to $2m · 2.5% $2.5m–$5m · 1.7% $7m+. Payable only on successful capital mobilisation.'],
                 ['Diagnostic Report fee', 'Standard $50 USD. Discounted rates apply based on assessment outcome.'],
               ].map(([k, v]) => (
                 <div key={k} className="border-l-2 border-[#F5B722]/30 pl-4 hover:border-[#F5B722] transition-colors">
@@ -2770,7 +2942,7 @@ function Home({ go, openPurchase }) {
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-20 lg:py-32">
           <div className="max-w-3xl">
             <h2 className="serif text-[clamp(2.2rem,5.5vw,3.8rem)] leading-[1.08] text-white">
-              Start where you are.<br /><span className="italic text-[#F5B722]">We'll take it from there.</span>
+              Connect the right opportunity<br />with the <span className="italic text-[#F5B722]">right capital</span>,<br />at the right time.
             </h2>
             <div className="mt-12 flex flex-wrap gap-4">
               <Btn size="lg" variant="primary" onClick={() => go('fit')}>Find your capital pathway <Arrow /></Btn>
@@ -3199,8 +3371,8 @@ function EngagementPathwayPanel({ assessment, formData }) {
           </div>
           <div className="p-4 rounded-sm bg-white/[0.04] border border-white/10">
             <p className="text-[10.5px] tracking-[0.12em] uppercase text-white/40 font-semibold mb-2">Success Fee</p>
-            <p className="serif text-[24px] text-white leading-none">3%</p>
-            <p className="text-[10.5px] text-white/40 mt-1.5">On mobilisation</p>
+            <p className="serif text-[24px] text-white leading-none">{successFeeRateForAmount(formData.amount)}</p>
+            <p className="text-[10.5px] text-white/40 mt-1.5">On mobilisation · {successFeeRangeLabel(formData.amount)}</p>
           </div>
         </div>
 
@@ -3687,7 +3859,7 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced, onLi
             <Micro className="block mb-8">For Businesses — Paid Assessment</Micro>
             <h1 className="serif text-[clamp(2rem,5vw,3.2rem)] leading-[1.1] text-[#071224] mb-5">Access private capital.</h1>
             <p className="text-[16px] leading-relaxed text-[#071224]/55 max-w-2xl mb-8">
-              Complete the structured assessment form. Proceed to payment of the non-refundable Submission &amp; Assessment Fee to activate the platform screening and receive your decision.
+              For African businesses seeking capital or international investors, and for international businesses pursuing opportunities across African markets. Complete the structured assessment form. Proceed to payment of the non-refundable Submission &amp; Assessment Fee to activate the platform screening and receive your decision.
             </p>
             <div className="flex flex-wrap items-center gap-3 mb-6 p-4 bg-white rounded-sm border border-[#071224]/8">
               <span className="w-2 h-2 rounded-full pulse-soft" style={{ background: liveSignal.color }}></span>
@@ -4013,6 +4185,7 @@ function InvestorAccess({ go }) {
           <div>
             <Micro className="block mb-8">For Investors — Access Investment Opportunities</Micro>
             <h1 className="serif text-[clamp(2rem,5vw,3.2rem)] leading-[1.1] text-[#071224] mb-5">Tell us what you invest in.</h1>
+            <p className="text-[16px] leading-relaxed text-[#071224]/55 max-w-2xl mb-4">ML Gateway provides investors — African and international, family offices, VC, PE, impact investors, strategic/corporate investors and other private-capital providers — with curated access to screened, investment- and growth-ready businesses aligned with their investment mandate, sector interests and geographic focus.</p>
             <p className="text-[16px] leading-relaxed text-[#071224]/55 max-w-2xl mb-12">Define your mandate once. We'll use your investment criteria to identify relevant opportunities within the ML Gateway network.</p>
             <div className="flex flex-wrap gap-x-8 gap-y-4 mb-12 pb-8 border-b border-[#071224]/10">
               {steps.map((s, i) => (
@@ -4241,7 +4414,7 @@ function HowItWorks({ go, openPurchase }) {
               </div>
               <div>
                 <Micro className="block mb-4">Success Fee</Micro>
-                <p className="text-[13px] leading-relaxed text-[#071224]/60 mb-3">Indicative at 3% of capital successfully mobilised. Payable on mobilisation only. Final percentage confirmed in the Engagement Letter.</p>
+                <p className="text-[13px] leading-relaxed text-[#071224]/60 mb-3">Payable on successful capital mobilisation only. Graduated: 3.0% up to $2 million · 2.5% $2.5m – $5m · 1.7% $7 million and above. Final percentage confirmed in the Engagement Letter.</p>
               </div>
             </div>
             <div className="mt-6 pt-6 border-t border-[#071224]/8">
@@ -4533,12 +4706,12 @@ function Insights() {
    ============================================================ */
 function About({ go }) {
   const relevanceExamples = [
-    { co: 'Zambian company', scenario: 'raising growth capital', status: 'Relevant' },
-    { co: 'Kenyan company', scenario: 'seeking expansion capital', status: 'Relevant' },
-    { co: 'UK company', scenario: 'seeking capital to acquire or expand into Africa', status: 'Potentially relevant' },
-    { co: 'US company', scenario: 'pursuing an African infrastructure opportunity', status: 'Potentially relevant' },
-    { co: 'UAE-based company', scenario: 'seeking growth capital for an African platform', status: 'Potentially relevant' },
+    { co: 'African business', scenario: 'raising growth, expansion or scale capital', status: 'Relevant' },
+    { co: 'African business', scenario: 'seeking international investors', status: 'Relevant' },
+    { co: 'International business', scenario: 'entering or expanding in African markets', status: 'Relevant' },
+    { co: 'International business', scenario: 'seeking capital for an African opportunity', status: 'Relevant' },
   ];
+  const investorUniverse = ['African investors','International investors','Family offices','Venture capital','Private equity','Impact investors','Strategic / corporate investors','Other private-capital providers'];
   return (
     <div className="fadein bg-[#F0F4F8]">
       <section className="bg-[#071224] text-white relative overflow-hidden">
@@ -4546,9 +4719,9 @@ function About({ go }) {
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24 relative z-10">
           <div className="max-w-4xl">
             <Micro light className="block mb-8">About ML Gateway</Micro>
-            <h1 className="serif text-[clamp(2.2rem,5.5vw,3.8rem)] leading-[1.1] text-white mb-8">A private-capital mobilisation platform for opportunities across African markets.</h1>
+            <h1 className="serif text-[clamp(2.2rem,5.5vw,3.8rem)] leading-[1.1] text-white mb-8">A gateway connecting global capital and businesses with opportunities across African markets.</h1>
             <p className="text-[17px] lg:text-[18px] leading-relaxed text-white/60 max-w-3xl">
-              ML Gateway connects investment- and growth-ready businesses with relevant investors through a curated private-capital network aligned to sector, stage, capital requirements and investment objectives.
+              ML Gateway is a cross-border capital and market-access platform of M. LEWIS GROUP, connecting opportunities involving African markets. It is a gateway connecting global capital and businesses with opportunities across African markets.
             </p>
           </div>
         </div>
@@ -4558,15 +4731,31 @@ function About({ go }) {
         <div className="max-w-[1320px] mx-auto px-6 lg:px-10 py-16 lg:py-24">
           <div className="grid lg:grid-cols-[1fr_1.3fr] gap-12 lg:gap-20">
             <div>
-              <SectionHead eyebrow="What makes an opportunity relevant" title="African or international. What matters is the connection to African markets." sub="We connect investment- and growth-ready businesses with private capital for opportunities across African markets." />
+              <SectionHead
+                eyebrow="Who we serve"
+                title="African markets as the anchor. Global capital and businesses as the participants."
+                sub="Four categories of client and opportunity move through the platform — African businesses and international businesses, each seeking capital or access to African markets."
+              />
             </div>
             <div className="space-y-3">
               {relevanceExamples.map((e, i) => (
                 <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 p-5 bg-[#F0F4F8] rounded-sm border border-[#071224]/5 hover:border-[#F5B722]/40 transition-colors slide-up" style={{ animationDelay: `${i * 0.06}s` }}>
-                  <span className="text-[13.5px] font-semibold text-[#071224] sm:w-40 shrink-0">{e.co}</span>
+                  <span className="text-[13.5px] font-semibold text-[#071224] sm:w-48 shrink-0">{e.co}</span>
                   <span className="text-[13.5px] text-[#071224]/60 flex-1">{e.scenario}</span>
                   <span className={`text-[10.5px] font-semibold tracking-[0.1em] uppercase px-3 py-1.5 rounded-full shrink-0 self-start sm:self-auto ${e.status === 'Relevant' ? 'bg-[#F5B722] text-[#071224]' : 'bg-[#F5B722]/15 text-[#B8860B] border border-[#F5B722]/30'}`}>{e.status}</span>
                 </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-12 bg-[#071224] rounded-sm p-8 lg:p-12">
+            <Micro light className="block mb-6">The investor universe</Micro>
+            <p className="text-[15px] leading-relaxed text-white/60 max-w-3xl mb-8">
+              The investor universe is likewise global. ML Gateway provides investors with curated access to screened, investment- and growth-ready businesses and opportunities aligned with their investment mandate, sector interests, geographic focus and appetite for African markets.
+            </p>
+            <div className="flex flex-wrap gap-2.5">
+              {investorUniverse.map((x, i) => (
+                <span key={i} className="text-[12.5px] text-white/80 border border-white/15 rounded-full px-4 py-2 hover:border-[#F5B722] hover:text-[#F5B722] transition-colors">{x}</span>
               ))}
             </div>
           </div>
@@ -4578,9 +4767,10 @@ function About({ go }) {
           <div className="max-w-4xl mx-auto">
             <Micro className="block mb-8">What we are</Micro>
             <div className="space-y-7 text-[17px] leading-relaxed text-[#071224]/70">
-              <p className="serif text-[clamp(1.5rem,2.8vw,2rem)] leading-[1.35] text-[#071224]">ML Gateway is a private-capital access platform connecting investment- and growth-ready businesses with relevant investors for opportunities across African markets.</p>
-              <p>ML Gateway provides businesses with access to relevant private capital through a curated network of investors aligned to their sector, stage, capital requirements and investment objectives.</p>
-              <p>ML Gateway provides businesses seeking capital for opportunities across African markets with access to relevant private investors through a curated private-capital network.</p>
+              <p className="serif text-[clamp(1.5rem,2.8vw,2rem)] leading-[1.35] text-[#071224]">ML Gateway — a curated pathway between growth opportunities and private capital across African markets.</p>
+              <p>ML Gateway is a cross-border capital and market-access platform of M. LEWIS GROUP, connecting opportunities involving African markets. ML Gateway helps investment- and growth-ready businesses navigate from capital requirement to relevant investor engagement through a structured, curated process.</p>
+              <p>Our approach brings together: Selection + Readiness + Positioning + Investor Intelligence + Matching + Access + Engagement + Coordination.</p>
+              <p>For selected businesses, ML Gateway is more than an introduction to an investor. We help create a structured pathway to define the capital requirement, strengthen the investment proposition, identify relevant investor profiles, match opportunities with aligned investors, facilitate targeted introductions, and help move the opportunity toward potential investment.</p>
             </div>
           </div>
         </div>
