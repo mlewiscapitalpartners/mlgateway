@@ -2640,6 +2640,8 @@ function TermsPanel({ quote }) {
 
 /* ============================================================
    HERO SLIDER
+   — Displays each image at its natural aspect ratio (no crop).
+   — Container resizes to match the active image's ratio.
    ============================================================ */
 const HERO_SLIDES = [
   { src: '3dbdfcd5-d5fe-4746-999a-7bede5e66420.png' },
@@ -2651,7 +2653,9 @@ const HERO_SLIDES = [
 function HeroSlider() {
   const [idx, setIdx] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [aspects, setAspects] = useState({});
   const n = HERO_SLIDES.length;
+
   const slide = (d) => setIdx(p => (p + d + n) % n);
 
   useEffect(() => {
@@ -2660,13 +2664,25 @@ function HeroSlider() {
     return () => clearInterval(t);
   }, [paused, n]);
 
+  const handleImgLoad = (i) => (e) => {
+    const img = e.currentTarget;
+    if (img.naturalWidth && img.naturalHeight) {
+      setAspects(prev => ({ ...prev, [i]: `${img.naturalWidth} / ${img.naturalHeight}` }));
+    }
+  };
+
+  const activeAspect = aspects[idx];
+
   return (
     <div
       className="relative w-full overflow-hidden rounded-sm border border-white/10 bg-[#0F203A] group fadein"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="relative h-[220px] sm:h-[300px] lg:h-[400px]">
+      <div
+        className="relative w-full transition-[aspect-ratio] duration-500 ease-out"
+        style={activeAspect ? { aspectRatio: activeAspect } : { aspectRatio: '16 / 9' }}
+      >
         {HERO_SLIDES.map((s, i) => (
           <div
             key={i}
@@ -2677,9 +2693,9 @@ function HeroSlider() {
               src={s.src}
               alt=""
               loading={i === 0 ? 'eager' : 'lazy'}
-              className={`w-full h-full object-cover transition-transform duration-[7000ms] ease-out ${i === idx ? 'scale-[1.06]' : 'scale-100'}`}
+              onLoad={handleImgLoad(i)}
+              className="w-full h-full object-contain block"
             />
-            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-[#071224]/45 via-transparent to-transparent"></div>
           </div>
         ))}
 
