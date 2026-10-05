@@ -14,7 +14,6 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js" defer></script>
 <style>
   :root { --navy: #071224; --yellow: #F5B722; --light: #F0F4F8; }
-
   html { overflow-x: hidden; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; text-rendering: optimizeLegibility; }
   body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; background-color: var(--light); overflow-x: hidden; width: 100%; max-width: 100vw; position: relative; }
   #root { overflow-x: hidden; width: 100%; min-width: 0; }
@@ -22,13 +21,11 @@
   h1, h2, h3, h4, h5, h6, p, span, a, li, div { overflow-wrap: break-word; word-wrap: break-word; }
   button, a { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
   img, svg, video, canvas, iframe, embed, object { max-width: 100%; height: auto; }
-
   .serif { font-family: 'Playfair Display', Georgia, serif; }
   .micro { font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; font-weight: 600; }
   ::selection { background: var(--yellow); color: var(--navy); }
   input, select, textarea { font-family: 'Inter', system-ui, sans-serif; }
   input:focus, select:focus, textarea:focus { outline: none; }
-
   .fadein { animation: fadein .5s cubic-bezier(.22,.61,.36,1) both; }
   @keyframes fadein { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
   .fadein-s { animation: fadein .3s ease both; }
@@ -38,33 +35,26 @@
   @keyframes pulseSoft { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
   .bar-grow { animation: barGrow 1s cubic-bezier(.22,.61,.36,1) both; }
   @keyframes barGrow { from { width: 0 !important; } }
-
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: var(--navy); }
   ::-webkit-scrollbar-thumb { background: var(--yellow); border-radius: 4px; }
   .glow { box-shadow: 0 0 20px rgba(245, 183, 34, 0.15); }
-
   .modal-fade { animation: modalFade .25s ease both; }
   @keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
   .modal-card { animation: modalCard .35s cubic-bezier(.22,.61,.36,1) both; }
   @keyframes modalCard { from { opacity: 0; transform: translateY(30px) scale(.98); } to { opacity: 1; transform: none; } }
-
   .doc-line { height: 6px; background: rgba(7,18,36,0.08); border-radius: 3px; }
   .clause-num { font-variant-numeric: tabular-nums; }
   .paper { box-shadow: 0 10px 40px -10px rgba(7,18,36,0.15), 0 2px 8px rgba(7,18,36,0.04); }
-
   @media (max-width: 768px) {
     .fadein, .fadein-s, .slide-up { animation: none !important; opacity: 1 !important; transform: none !important; }
     .pulse-soft { animation: none !important; opacity: 1 !important; }
     .bar-grow { animation-duration: 0.4s !important; }
   }
-
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
   }
-
   @media (min-width: 1024px) { html { scroll-behavior: smooth; } }
-
   .pay-amount-banner{background:linear-gradient(135deg,#071224 0%,#0F203A 100%);color:#fff;border-radius:14px;padding:22px 24px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap;position:relative;overflow:hidden}
   .pay-amount-banner .pab-label{font-size:11px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:#F5B722;margin-bottom:6px;position:relative;z-index:2}
   .pay-amount-banner .pab-amount{font-family:'Playfair Display',Georgia,serif;font-size:clamp(2rem,4vw,2.6rem);font-weight:800;color:#F5B722;line-height:1;position:relative;z-index:2}
@@ -198,14 +188,12 @@
   .receipt-check-row input:focus{outline:none;border-color:#7C5FCC;box-shadow:0 0 0 3px rgba(124,95,204,.15)}
   .receipt-check-result{font-size:12.5px;color:#4A3580;margin-top:10px;padding:10px 14px;border-radius:8px;background:#fff;border-left:3px solid #7C5FCC;display:none}
   .receipt-check-result.show{display:block}
-
   @media print {
     body.print-receipt-mode * { visibility: hidden !important; }
     body.print-receipt-mode .printable-receipt,
     body.print-receipt-mode .printable-receipt * { visibility: visible !important; }
     body.print-receipt-mode .printable-receipt { position: absolute; left:0; top:0; width:100%; padding:20px; box-shadow:none; }
   }
-
   @media (max-width: 640px) {
     [class*="blur-["] { --tw-blur: blur(40px); }
     .backdrop-blur-md, .backdrop-blur, .backdrop-blur-sm { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
@@ -435,7 +423,6 @@ async function generateReceiptNumber(prefix){
   return pfx + '-' + year + '-' + String(Math.floor(Math.random() * 90000) + 10000);
 }
 
-/* Strip undefined / null / '' — Firestore rejects undefined */
 function sanitizeForFirestore(obj){
   const out = {};
   Object.entries(obj).forEach(([k, v]) => {
@@ -447,7 +434,6 @@ function sanitizeForFirestore(obj){
   return out;
 }
 
-/* Look up a returning applicant by email, company, or phone in the applicant_index collection */
 async function findExistingApplicant({ email, company, phone }) {
   const fb = await firebaseReady;
   if (!fb) return null;
@@ -551,9 +537,6 @@ const DD_PACK = ['Full data room prepared','Partial due diligence pack','Not pre
 const MGMT_TEAM = ['Experienced and complete','Experienced with identified gaps','Founder-led only','Key roles unfilled'];
 const KEY_PERSON = ['Low — strong bench','Moderate','High — single key person'];
 
-/* ============================================================
-   GEOGRAPHY BANDS — internal use only
-   ============================================================ */
 const GEO_BANDS = {
   'Africa':     { min: 1000, max: 2500, label: 'African markets',     short: 'Africa' },
   'UAE':        { min: 2000, max: 3500, label: 'United Arab Emirates', short: 'UAE' },
@@ -571,9 +554,6 @@ function getGeographyBand(country) {
   return 'Other';
 }
 
-/* ============================================================
-   ASSESSMENT ENGINE — internal
-   ============================================================ */
 function assessOpportunity(f) {
   const dims = [];
   const critical = [];
@@ -747,9 +727,6 @@ function statusBadgeClass(status) {
   return 'bg-[#E0A030]/15 text-[#A87820] border border-[#E0A030]/30';
 }
 
-/* ============================================================
-   ENTERPRISE DIAGNOSTIC CONTENT
-   ============================================================ */
 const DIAGNOSTIC_DELIVERABLES = [
   { n: '01', t: 'Current Business Stage', d: 'A clear classification of where your business stands today — Early, Growth, Scale or Mature — benchmarked against sector norms and against the expectations of private capital providers at each stage.', points: ['Stage classification', 'Sector benchmark position', 'Stage-specific investor expectations', 'Readiness trajectory'] },
   { n: '02', t: 'Constraint Analysis', d: 'The specific constraints holding your business back — not a generic list, but an analysis of what is actually limiting growth and investment readiness in your case.', points: ['Financial constraints', 'Operational constraints', 'Market constraints', 'Governance constraints', 'Capital structure constraints'] },
@@ -1009,6 +986,8 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
   const [checkRef, setCheckRef] = useState('');
   const [checkResult, setCheckResult] = useState('');
   const [cloudSaved, setCloudSaved] = useState(null);
+  const [copiedMessage, setCopiedMessage] = useState(false);
+  const [whatsappOpened, setWhatsappOpened] = useState(false);
 
   const copyText = (text, key) => {
     const done = () => { setCopied(key); setTimeout(() => setCopied(''), 1500); };
@@ -1017,11 +996,12 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
   };
   const fallbackCopy = (text, done) => { const ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch(e) {} document.body.removeChild(ta); };
 
-  const buildWhatsappMessage = (rcpt) => {
+  const buildWhatsappMessage = (rcpt, dateOverride) => {
+    const dateStr = dateOverride || receiptDate;
     const lines = [
       '*ML GATEWAY — PAYMENT PROOF*', '',
       '*Receipt No:* ' + rcpt,
-      '*Date & Time:* ' + receiptDate,
+      '*Date & Time:* ' + dateStr,
       '', '*APPLICANT / BUSINESS*',
       'Name: ' + (applicant.firstName || '') + ' ' + (applicant.lastName || ''),
       'Company: ' + (applicant.company || '—'),
@@ -1046,13 +1026,42 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
     if (!senderContact.trim()) { setErrorMsg('Please enter the phone or email used to pay.'); return; }
     if (!userRef.trim()) { setErrorMsg('Please enter your transaction reference.'); return; }
     if (!agree) { setErrorMsg('Please tick the confirmation checkbox.'); return; }
+
+    // ── Open a placeholder tab SYNCHRONOUSLY while the user gesture is still active.
+    //    If a popup blocker rejects this, waWindow is null and the visible green
+    //    button (a real <a href>) remains the fallback path.
+    let waWindow = null;
+    try {
+      waWindow = window.open('about:blank', '_blank');
+    } catch (e) {
+      console.warn('[MLG] Placeholder window blocked:', e);
+    }
+    if (waWindow) {
+      try {
+        waWindow.document.write('<title>Opening WhatsApp…</title><body style="font-family:system-ui;padding:24px;color:#071224">Opening WhatsApp…</body>');
+      } catch (e) {}
+    }
+
     const rcpt = await generateReceiptNumber(receiptPrefix || 'MLG');
     const now = new Date();
     const dt = now.toLocaleString('en-GB', { year:'numeric', month:'short', day:'2-digit', hour:'2-digit', minute:'2-digit' });
     setReceiptNo(rcpt); setReceiptDate(dt);
-    const msg = buildWhatsappMessage(rcpt);
+    const msg = buildWhatsappMessage(rcpt, dt);
     const url = 'https://wa.me/' + ADMIN_WHATSAPP + '?text=' + encodeURIComponent(msg);
     setWhatsappUrl(url); setConfirmed(true);
+
+    // ── Navigate the placeholder window to WhatsApp now that we have the URL
+    if (waWindow && !waWindow.closed) {
+      try {
+        waWindow.location.href = url;
+        setWhatsappOpened(true);
+      } catch (e) {
+        console.warn('[MLG] Could not navigate placeholder window:', e);
+      }
+    } else {
+      console.warn('[MLG] WhatsApp auto-open was blocked — user will use the visible green button.');
+    }
+
     const m = PAYMENT_METHODS[method];
 
     const rawData = {
@@ -1096,7 +1105,27 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
     }
 
     if (onConfirmed) onConfirmed(cleanData);
-    setTimeout(() => { try { window.open(url, '_blank'); } catch(err) {} }, 350);
+  };
+
+  const copyWhatsappMessage = () => {
+    const text = buildWhatsappMessage(receiptNo, receiptDate);
+    const done = () => { setCopiedMessage(true); setTimeout(() => setCopiedMessage(false), 2500); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopyMessage(text, done));
+    } else {
+      fallbackCopyMessage(text, done);
+    }
+  };
+
+  const fallbackCopyMessage = (text, done) => {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) {}
+    document.body.removeChild(ta);
   };
 
   const downloadReceiptPDF = async () => {
@@ -1165,8 +1194,34 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
           <div className="ps-whatsapp-block">
             <div className="psw-title"><i className="fab fa-whatsapp" aria-hidden="true"></i> Step 1 — Send Proof to ML Gateway</div>
             <p>To confirm your payment, please send the confirmation below to our team on WhatsApp <strong>+260 768 526 191</strong>. They will compare your details against our records and confirm receipt.</p>
-            <a href={whatsappUrl} className="btn-whatsapp" target="_blank" rel="noopener" onClick={() => setWhatsappSent(true)}><i className="fab fa-whatsapp" aria-hidden="true"></i> <span>Send Proof to WhatsApp</span></a>
-            <div className="psw-note">If WhatsApp does not open automatically, tap the button above.</div>
+
+            <a
+              href={whatsappUrl}
+              className="btn-whatsapp"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setWhatsappSent(true)}
+            >
+              <i className="fab fa-whatsapp" aria-hidden="true"></i>
+              <span>{whatsappOpened ? 'Open WhatsApp again' : 'Send Proof to WhatsApp'}</span>
+            </a>
+
+            <button
+              type="button"
+              onClick={copyWhatsappMessage}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                width: '100%', marginTop: 10, padding: '11px 18px',
+                background: '#fff', border: '1.5px solid #25D366', color: '#075E54',
+                borderRadius: 10, fontSize: 13, fontWeight: 700, cursor: 'pointer',
+                fontFamily: 'inherit', transition: 'all .2s ease'
+              }}
+            >
+              <i className={`fas ${copiedMessage ? 'fa-check' : 'fa-copy'}`} aria-hidden="true"></i>
+              {copiedMessage ? 'Message copied to clipboard' : 'Copy message (if WhatsApp is blocked)'}
+            </button>
+
+            <div className="psw-note">If WhatsApp does not open automatically, use the green button above. If it is still blocked, copy the message and send it manually to <strong>+260 768 526 191</strong>.</div>
             {whatsappSent && <div className="psw-sent show"><i className="fas fa-check-circle"></i> Confirmation ready — please tap <strong>Send</strong> in WhatsApp.</div>}
           </div>
           <div className="receipt-section">
@@ -1278,7 +1333,7 @@ function PaymentFlow({ amount, currency, purpose, purposeDetail, applicant, rece
 }
 
 /* ============================================================
-   ENGAGEMENT FLOW — Proposal → Letter → Payment → Commenced
+   ENGAGEMENT FLOW
    ============================================================ */
 function EngagementFlow({ assessment, formData, refCode, onCommenced, onExit }) {
   const [step, setStep] = useState(0);
@@ -2073,7 +2128,7 @@ function PurchaseModal({ open, onClose, courtesyAmount, context }) {
 }
 
 /* ============================================================
-   INVESTOR ACCESS MODAL — pay to unlock curated opportunities
+   INVESTOR ACCESS MODAL
    ============================================================ */
 function InvestorAccessModal({ open, onClose, onUnlocked }) {
   const [step, setStep] = useState(0);
@@ -3322,12 +3377,10 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced, onLi
   const assessment = useMemo(() => assessOpportunity(f), [f]);
   const refCode = useMemo(() => 'MLG-' + Math.random().toString(36).slice(2, 7).toUpperCase(), []);
 
-  // Returning applicant detection
   const [returning, setReturning] = useState(null);
   const [returningDismissed, setReturningDismissed] = useState(false);
   const [checkingReturn, setCheckingReturn] = useState(false);
 
-  // On mount: if we have a saved email in localStorage, auto-check
   useEffect(() => {
     const savedEmail = (() => {
       try { return localStorage.getItem('mlg_last_email') || ''; } catch { return ''; }
@@ -3343,7 +3396,6 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced, onLi
     return () => { cancelled = true; };
   }, [returningDismissed]);
 
-  // When email field is blurred, check Firestore for a match
   const checkReturningByEmail = async (email) => {
     if (!email || !email.includes('@') || returningDismissed) return;
     setCheckingReturn(true);
@@ -3352,7 +3404,6 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced, onLi
     setCheckingReturn(false);
   };
 
-  // Apply the found data to the form
   const applyReturning = () => {
     if (!returning) return;
     setF(prev => ({
@@ -3445,7 +3496,6 @@ function BusinessAccess({ go, prefill, openPurchase, onEngagementCommenced, onLi
         );
         console.log('[MLG] ✅ Submission saved to Firestore:', refCode);
 
-        // Write applicant lookup index (email as doc id)
         if (f.contactEmail && f.contactEmail.includes('@')) {
           const emailKey = f.contactEmail.toLowerCase().trim();
           const indexData = sanitizeForFirestore({
